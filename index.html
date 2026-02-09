@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner Xerox - V1.7 Photo & Success</title>
+    <title>Scanner Xerox - V1.8 SharePoint</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         :root { --xerox-red: #DA291C; --xerox-dark-red: #B01D15; --success-green: #28a745; }
@@ -119,14 +119,12 @@
     function goToStep(step) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.getElementById('step' + step).classList.add('active');
-        
         const titles = ["", "1. Informations Expédition", "2. Scan des pièces", "Envoi réussi"];
         document.getElementById('headerTitle').innerText = titles[step];
     }
 
     function scanFile(input) {
         if (input.files && input.files.length == 0) return;
-
         const statusDiv = document.getElementById("scanStatus");
         statusDiv.style.display = "block";
         statusDiv.style.background = "#fff3cd";
@@ -134,7 +132,6 @@
         statusDiv.innerText = "Analyse de la photo en cours...";
 
         const imageFile = input.files[0];
-        
         html5QrCode.scanFile(imageFile, true)
             .then(decodedText => {
                 addOrUpdatePiece(decodedText);
@@ -194,10 +191,48 @@
         updateList();
     }
 
-    function finalSubmit() {
+    // --- MODIFICATION ICI : ENVOI VERS POWER AUTOMATE ---
+    async function finalSubmit() {
         if (inventory.length === 0) { alert("Liste vide."); return; }
-        // On pourra ajouter l'appel API ici
-        goToStep(3);
+        
+        const btn = document.querySelector("#step2 .btn-main");
+        const originalText = btn.innerText;
+        
+        try {
+            btn.disabled = true;
+            btn.innerText = "⌛ Envoi en cours...";
+            
+            // L'URL que tu obtiendras dans Power Automate (Trigger HTTP)
+            const flowUrl = "TON_URL_ICI"; 
+
+            const data = {
+                boxId: document.getElementById("boxId").value,
+                location: document.getElementById("location").value,
+                phone: document.getElementById("phone").value,
+                empId: document.getElementById("empId").value,
+                userEmail: document.getElementById("userEmail").value,
+                items: inventory // Liste des pièces [ {code: "...", qty: 1}, ... ]
+            };
+
+            const response = await fetch(flowUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                goToStep(3);
+            } else {
+                throw new Error("Erreur serveur");
+            }
+
+        } catch (error) {
+            console.error("Erreur d'envoi:", error);
+            alert("❌ Échec de l'envoi. Vérifiez votre connexion internet.");
+        } finally {
+            btn.disabled = false;
+            btn.innerText = originalText;
+        }
     }
 
     function resetForm() {
@@ -210,4 +245,3 @@
 </script>
 </body>
 </html>
-
