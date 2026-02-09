@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner Xerox - V1.5 Zoom</title>
+    <title>Scanner Xerox - Confirmation</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         :root { --xerox-red: #DA291C; --xerox-dark-red: #B01D15; --success-green: #28a745; }
@@ -46,7 +46,7 @@
 <body>
 
 <div class="container">
-    <h1>Formulaire de retour de pièces neuves V1.5</h1>
+    <h1>Formulaire de retour de pièces neuves V1.4</h1>
     <header id="headerTitle">1. Informations Expédition</header>
 
     <div id="step1" class="section active">
@@ -126,71 +126,35 @@
         }
     }
 
-    // --- MODIFICATION ICI : AJOUT DU ZOOM ---
-<script>
-    // ... (garder le début de ton script identique)
-
-    async function startScanner() {
+    // --- PARTIE MODIFIÉE POUR LE ZOOM S23 ---
+    function startScanner() {
         const readerDiv = document.getElementById("reader");
         readerDiv.style.display = "block";
         document.getElementById("btnToggleScan").style.display = "none";
         document.getElementById("scanStatus").style.display = "none";
 
-        // CONFIGURATION OPTIMISÉE POUR S23
-        // On réduit la QRBOX : ça force le moteur à ignorer le flou sur les bords
-        const config = { 
-            fps: 25, 
-            qrbox: { width: 220, height: 100 }, // Zone plus petite = focus plus précis
-            aspectRatio: 1.0 
-        };
+        const config = { fps: 20, qrbox: { width: 250, height: 120 }, aspectRatio: 1.0 };
         
-        try {
-            await html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
-                addOrUpdatePiece(decodedText);
-                stopScanner(); 
-            });
-
-            // Tentative de zoom spécifique Samsung (certains S23 l'acceptent via applyConstraints)
-            const videoTrack = html5QrCode.getVideoTrack();
-            if (videoTrack) {
-                const capabilities = videoTrack.getCapabilities();
-                if (capabilities.zoom) {
-                    // On demande un zoom de 2.5x pour compenser la distance de 20cm
-                    await videoTrack.applyConstraints({
-                        advanced: [{ zoom: 2.5 }] 
-                    });
-                }
-            }
-        } catch (err) {
-            console.error(err);
-        }
-    }
-
-    function addOrUpdatePiece(code) {
-        const statusDiv = document.getElementById("scanStatus");
-        statusDiv.style.display = "block";
-        statusDiv.style.background = "#d4edda";
-        statusDiv.style.color = "#155724";
-        
-        // NETTOYAGE DES ÉTOILES XEROX (*)
-        const cleanCode = code.trim().replace(/\*/g, "").toUpperCase();
-
-        if (regex.test(cleanCode)) {
-            const existingItem = inventory.find(item => item.code === cleanCode);
-            if (existingItem) {
-                existingItem.qty += 1;
-                statusDiv.innerText = "➕ Quantité mise à jour : " + cleanCode;
-            } else {
-                inventory.push({ code: cleanCode, qty: 1 });
-                statusDiv.innerText = "✅ Ajouté : " + cleanCode;
-            }
-            updateList();
-            if (navigator.vibrate) navigator.vibrate(100);
-        } else {
-            statusDiv.style.background = "#f8d7da";
-            statusDiv.style.color = "#721c24";
-            statusDiv.innerText = "❌ Format invalide : " + cleanCode;
-        }
+        html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
+            addOrUpdatePiece(decodedText);
+            stopScanner(); 
+        }).then(() => {
+            // Tentative de zoom après un court délai pour laisser le S23 s'initialiser
+            setTimeout(async () => {
+                try {
+                    const videoTrack = html5QrCode.getVideoTrack();
+                    if (videoTrack) {
+                        const capabilities = videoTrack.getCapabilities();
+                        if (capabilities.zoom) {
+                            // On applique un zoom de 2.0x (idéal pour le S23 à 20cm)
+                            await videoTrack.applyConstraints({
+                                advanced: [{ zoom: 2.0 }]
+                            });
+                        }
+                    }
+                } catch (e) { console.error("Zoom non supporté", e); }
+            }, 500);
+        }).catch(err => console.error(err));
     }
 
     function stopScanner() {
@@ -199,17 +163,17 @@
         html5QrCode.stop().catch(() => {});
     }
 
-    // --- MODIFICATION ICI : NETTOYAGE DES ÉTOILES ---
+    // --- PARTIE MODIFIÉE POUR LE NETTOYAGE DES ÉTOILES ---
     function addOrUpdatePiece(code) {
         const statusDiv = document.getElementById("scanStatus");
         statusDiv.style.display = "block";
-        statusDiv.style.background = "#d4edda";
-        statusDiv.style.color = "#155724";
         
-        // Supprime les étoiles * si présentes
+        // Nettoyage des étoiles Xerox
         const cleanCode = code.trim().replace(/\*/g, "").toUpperCase();
 
         if (regex.test(cleanCode)) {
+            statusDiv.style.background = "#d4edda";
+            statusDiv.style.color = "#155724";
             const existingItem = inventory.find(item => item.code === cleanCode);
             if (existingItem) {
                 existingItem.qty += 1;
@@ -264,4 +228,3 @@
 </script>
 </body>
 </html>
-
