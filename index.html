@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner Xerox - Confirmation</title>
+    <title>Scanner Xerox - V1.6 Photo</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         :root { --xerox-red: #DA291C; --xerox-dark-red: #B01D15; --success-green: #28a745; }
@@ -26,7 +26,8 @@
         .btn-manual { background: var(--success-green); color: white; margin-top: 10px; }
         .btn-secondary { background: none; color: #666; text-decoration: underline; margin-top: 15px; font-size: 0.9em; }
 
-        #reader { width: 100%; border-radius: 8px; overflow: hidden; margin-top: 15px; border: 2px solid #ddd; display: none; }
+        /* Le lecteur reste caché, on s'en sert pour analyser la photo en arrière-plan */
+        #reader { display: none; }
         
         .item-list { margin-top: 25px; border-top: 2px solid var(--xerox-red); background: #fdfdfd; padding: 10px; }
         .item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; align-items: center; background: white; margin-bottom: 5px; border-radius: 4px; }
@@ -39,27 +40,30 @@
         .status { padding: 12px; border-radius: 6px; margin-top: 15px; text-align: center; font-weight: bold; }
         .success-box { text-align: center; padding: 40px 20px; }
         .success-icon { font-size: 50px; color: var(--success-green); margin-bottom: 20px; }
-        .success-msg { font-size: 1.1em; line-height: 1.6; color: #444; }
-        .success-email { font-weight: bold; color: var(--xerox-red); display: block; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Formulaire de retour de pièces neuves V1.5</h1>
+    <h1>Formulaire de retour Xerox V1.6</h1>
     <header id="headerTitle">1. Informations Expédition</header>
 
     <div id="step1" class="section active">
         <div class="form-group"><label>BoxID</label><input type="text" id="boxId" placeholder="Ex: 123456"></div>
-        <div class="form-group"><label>Emplacement</label><input type="text" id="location" placeholder="Ex: PD, locker ou # employé"></div>
+        <div class="form-group"><label>Emplacement</label><input type="text" id="location" placeholder="Ex: PD, locker..."></div>
         <div class="form-group"><label>Téléphone</label><input type="tel" id="phone" placeholder="418-xxx-xxxx"></div>
         <div class="form-group"><label># Employé</label><input type="text" id="empId" placeholder="Ex: 012345"></div>
-        <div class="form-group" style="border:none;"><label>Votre courriel</label><input type="email" id="userEmail" placeholder="prénom.nom@xerox.com"></div>
+        <div class="form-group" style="border:none;"><label>Votre courriel</label><input type="email" id="userEmail" placeholder="nom@xerox.com"></div>
         <button class="btn-main" onclick="saveAndGoToStep2()">Suivant</button>
     </div>
 
     <div id="step2" class="section">
-        <button id="btnToggleScan" class="btn-scan" onclick="startScanner()">📷 Activer la Caméra</button>
+        <input type="file" accept="image/*" capture="environment" id="fileInput" style="display:none;" onchange="scanFile(this)">
+        
+        <button id="btnTrigger" class="btn-scan" onclick="document.getElementById('fileInput').click()">
+            📷 Prendre une Photo du Code
+        </button>
+
         <div id="reader"></div>
         <div id="scanStatus" class="status" style="display:none; background: #d4edda; color: #155724; border: 1px solid #c3e6cb;"></div>
         
@@ -76,12 +80,7 @@
     <div id="step3" class="section">
         <div class="success-box">
             <div class="success-icon">✔️</div>
-            <div class="success-msg">
-                Vos données ont été envoyées à cette adresse :
-                <span class="success-email">NewPartReturns@xerox.com</span>
-                <br>
-                Un courriel de confirmation vous sera envoyé d'ici 5 min.
-            </div>
+            <div class="success-msg">Données transmises avec succès.</div>
             <button class="btn-main" onclick="resetForm()" style="margin-top: 40px;">Nouveau formulaire</button>
         </div>
     </div>
@@ -99,12 +98,6 @@
     };
 
     function saveAndGoToStep2() {
-        const fields = ["boxId", "location", "phone", "empId", "userEmail"];
-        for(let id of fields) {
-            if (!document.getElementById(id).value.trim()) {
-                alert("⚠️ Tous les champs sont requis."); return;
-            }
-        }
         localStorage.setItem("savedPhone", document.getElementById("phone").value);
         localStorage.setItem("savedEmpId", document.getElementById("empId").value);
         localStorage.setItem("savedEmail", document.getElementById("userEmail").value);
@@ -114,56 +107,37 @@
     function goToStep(step) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.getElementById('step' + step).classList.add('active');
+        const titles = ["", "1. Informations Expédition", "2. Scan des pièces", "Envoi réussi"];
+        document.getElementById('headerTitle').innerText = titles[step];
+    }
+
+    // --- LOGIQUE OPTION 1 : ANALYSE DE FICHIER PHOTO ---
+    function scanFile(input) {
+        if (input.files && input.files.length == 0) return;
+
+        const statusDiv = document.getElementById("scanStatus");
+        statusDiv.style.display = "block";
+        statusDiv.style.background = "#fff3cd";
+        statusDiv.style.color = "#856404";
+        statusDiv.innerText = "Analyse de la photo en cours...";
+
+        const imageFile = input.files[0];
         
-        if (step === 1) {
-            document.getElementById('headerTitle').innerText = "1. Informations Expédition";
-            stopScanner();
-        } else if (step === 2) {
-            document.getElementById('headerTitle').innerText = "2. Scan des pièces";
-        } else if (step === 3) {
-            document.getElementById('headerTitle').innerText = "Envoi réussi";
-            stopScanner();
-        }
+        // On utilise le moteur de scan sur le fichier image directement
+        html5QrCode.scanFile(imageFile, true)
+            .then(decodedText => {
+                addOrUpdatePiece(decodedText);
+                input.value = ""; // Reset le champ pour la prochaine photo
+            })
+            .catch(err => {
+                statusDiv.style.background = "#f8d7da";
+                statusDiv.style.color = "#721c24";
+                statusDiv.innerText = "❌ Code illisible. Reprenez une photo plus nette.";
+                console.error(err);
+                input.value = "";
+            });
     }
 
-    // --- PARTIE MODIFIÉE POUR LE ZOOM S23 ---
-    function startScanner() {
-        const readerDiv = document.getElementById("reader");
-        readerDiv.style.display = "block";
-        document.getElementById("btnToggleScan").style.display = "none";
-        document.getElementById("scanStatus").style.display = "none";
-
-        const config = { fps: 20, qrbox: { width: 250, height: 120 }, aspectRatio: 1.0 };
-        
-        html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
-            addOrUpdatePiece(decodedText);
-            stopScanner(); 
-        }).then(() => {
-            // Tentative de zoom après un court délai pour laisser le S23 s'initialiser
-            setTimeout(async () => {
-                try {
-                    const videoTrack = html5QrCode.getVideoTrack();
-                    if (videoTrack) {
-                        const capabilities = videoTrack.getCapabilities();
-                        if (capabilities.zoom) {
-                            // On applique un zoom de 2.0x (idéal pour le S23 à 20cm)
-                            await videoTrack.applyConstraints({
-                                advanced: [{ zoom: 10.0 }]
-                            });
-                        }
-                    }
-                } catch (e) { console.error("Zoom non supporté", e); }
-            }, 500);
-        }).catch(err => console.error(err));
-    }
-
-    function stopScanner() {
-        document.getElementById("reader").style.display = "none";
-        document.getElementById("btnToggleScan").style.display = "flex";
-        html5QrCode.stop().catch(() => {});
-    }
-
-    // --- PARTIE MODIFIÉE POUR LE NETTOYAGE DES ÉTOILES ---
     function addOrUpdatePiece(code) {
         const statusDiv = document.getElementById("scanStatus");
         statusDiv.style.display = "block";
@@ -177,7 +151,7 @@
             const existingItem = inventory.find(item => item.code === cleanCode);
             if (existingItem) {
                 existingItem.qty += 1;
-                statusDiv.innerText = "➕ Quantité mise à jour : " + cleanCode;
+                statusDiv.innerText = "➕ Mis à jour : " + cleanCode;
             } else {
                 inventory.push({ code: cleanCode, qty: 1 });
                 statusDiv.innerText = "✅ Ajouté : " + cleanCode;
@@ -192,7 +166,7 @@
     }
 
     function manualEntry() {
-        const code = prompt("Entrez le code pièce (ex: 123A45678) :");
+        const code = prompt("Entrez le code pièce :");
         if (code) addOrUpdatePiece(code);
     }
 
@@ -214,7 +188,6 @@
 
     function finalSubmit() {
         if (inventory.length === 0) { alert("Liste vide."); return; }
-        console.log("Données envoyées :", inventory);
         goToStep(3);
     }
 
@@ -228,5 +201,3 @@
 </script>
 </body>
 </html>
-
-
