@@ -4,85 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Scanner Xerox - V3</title>
+    <title>Scanner Xerox - V4 HD</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        :root { 
-            --xerox-red: #DA291C; 
-            --success-green: #28a745; 
-            --warning-orange: #ffc107;
-        }
-
+        :root { --xerox-red: #DA291C; --success-green: #28a745; --warning-orange: #ffc107; }
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background: #f4f4f4; color: #333; }
-        
-        .container { 
-            max-width: 500px; 
-            margin: 10px auto; 
-            background: white; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
-            overflow: hidden; 
-            min-height: 95vh; 
-            display: flex; 
-            flex-direction: column; 
-        }
-        
-        h1 { 
-            font-size: 1.3em; 
-            margin: 0; 
-            color: var(--xerox-red); 
-            text-align: center; 
-            padding: 20px 10px; 
-            background: white; 
-            border-bottom: 1px solid #eee; 
-        }
-
-        header { 
-            background: var(--xerox-red); 
-            color: white; 
-            padding: 12px; 
-            text-align: left; 
-            padding-left: 20px; 
-            font-weight: bold; 
-            font-size: 0.95em;
-        }
-        
+        .container { max-width: 500px; margin: 10px auto; background: white; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); overflow: hidden; min-height: 95vh; display: flex; flex-direction: column; }
+        h1 { font-size: 1.3em; margin: 0; color: var(--xerox-red); text-align: center; padding: 20px 10px; background: white; border-bottom: 1px solid #eee; }
+        header { background: var(--xerox-red); color: white; padding: 12px; text-align: left; padding-left: 20px; font-weight: bold; }
         .section { padding: 20px; display: none; flex-grow: 1; }
         .active { display: block; }
-
         .form-group { display: flex; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #f0f0f0; padding-bottom: 5px; }
         label { width: 110px; font-weight: bold; font-size: 0.85em; color: #666; }
         input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; background: #fafafa; }
-
-        button { width: 100%; border: none; padding: 15px; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        button { width: 100%; border: none; padding: 15px; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; }
         .btn-main { background: var(--xerox-red); color: white; margin-top: 15px; }
-        .btn-scan { background: #444; color: white; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn-manual { background: var(--success-green); color: white; margin-top: 10px; }
-        .btn-secondary { background: none; color: #666; text-decoration: underline; margin-top: 15px; font-size: 0.9em; width: auto; }
-
-        #reader { width: 100%; border-radius: 8px; overflow: hidden; margin-top: 15px; border: 2px solid #ddd; display: none; background: #000; }
-        
-        .status { padding: 12px; border-radius: 6px; margin-top: 15px; text-align: center; font-weight: bold; font-size: 0.9em; }
-        .status-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .status-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
-
-        .item-list { margin-top: 25px; border-top: 2px solid var(--xerox-red); background: #fdfdfd; padding: 10px; }
-        .item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; align-items: center; background: white; margin-bottom: 5px; border-radius: 4px; }
-        .item-info { display: flex; flex-direction: column; }
-        .item-code { font-family: 'Courier New', monospace; font-weight: bold; color: var(--xerox-red); font-size: 1.1em; }
-        .item-qty { font-size: 0.9em; font-weight: bold; color: #555; margin-top: 2px; }
-        .btn-del { color: #888; border: 1px solid #ccc; background: white; padding: 6px 10px; border-radius: 4px; font-size: 0.75em; width: auto; }
-
-        .success-box { text-align: center; padding: 40px 10px; }
-        .success-icon { font-size: 60px; color: var(--success-green); margin-bottom: 20px; }
-        .success-msg { font-size: 1.1em; line-height: 1.6; color: #444; }
-        .success-email { font-weight: bold; color: var(--xerox-red); display: block; margin: 15px 0; }
+        .btn-scan { background: #444; color: white; margin-top: 10px; }
+        #reader { width: 100%; border-radius: 8px; margin-top: 15px; border: 2px solid #ddd; display: none; background: #000; }
+        .status { padding: 12px; border-radius: 6px; margin-top: 15px; text-align: center; font-weight: bold; }
+        .status-success { background: #d4edda; color: #155724; }
+        .status-warning { background: #fff3cd; color: #856404; }
+        .item-list { margin-top: 25px; border-top: 2px solid var(--xerox-red); padding: 10px; }
+        .item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; background: white; margin-bottom: 5px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Formulaire de retour de pièces neuves V3</h1>
+    <h1>Xerox Retour - V4 HD</h1>
     <header id="headerTitle">1. Informations Expédition</header>
 
     <div id="step1" class="section active">
@@ -91,163 +40,106 @@
         <div class="form-group"><label>Téléphone</label><input type="tel" id="phone" placeholder="418-xxx-xxxx"></div>
         <div class="form-group"><label># Employé</label><input type="text" id="empId" placeholder="Ex: 012345"></div>
         <div class="form-group" style="border:none;"><label>Votre courriel</label><input type="email" id="userEmail" placeholder="nom@xerox.com"></div>
-        <button class="btn-main" onclick="saveAndGoToStep2()">Suivant</button>
+        <button class="btn-main" onclick="goToStep(2)">Suivant</button>
     </div>
 
     <div id="step2" class="section">
-        <button id="btnToggleScan" class="btn-scan" onclick="startScanner()">📷 Activer la Caméra</button>
+        <button id="btnToggleScan" class="btn-scan" onclick="startScanner()">📷 Activer la Caméra HD</button>
         <div id="reader"></div>
         <div id="scanStatus" class="status" style="display:none;"></div>
-        
-        <button class="btn-manual" onclick="manualEntry()">Saisie Manuelle</button>
-
-        <div class="item-list" id="itemList">
-            <h3 style="font-size: 1em; color: #666;">Liste des pièces (<span id="totalItems">0</span>)</h3>
-        </div>
-
-        <button class="btn-main" onclick="finalSubmit()">Terminer et Envoyer</button>
-        <button class="btn-secondary" onclick="goToStep(1)">← Modifier infos</button>
+        <button class="btn-main" onclick="manualEntry()" style="background: #28a745; margin-top:10px;">Saisie Manuelle</button>
+        <div class="item-list" id="itemList"><h3>Liste des pièces (<span id="totalItems">0</span>)</h3></div>
+        <button class="btn-main" onclick="goToStep(3)">Terminer et Envoyer</button>
     </div>
 
     <div id="step3" class="section">
-        <div class="success-box">
-            <div class="success-icon">✔️</div>
-            <div class="success-msg">
-                Vos données ont été envoyées à cette adresse :
-                <span class="success-email">NewPartReturns@xerox.com</span>
-                Un courriel de confirmation vous sera envoyé d'ici 5 min.
-            </div>
-            <button class="btn-main" onclick="resetForm()" style="margin-top: 40px;">Nouveau formulaire</button>
+        <div style="text-align:center; padding: 40px 10px;">
+            <div style="font-size: 50px; color: green;">✔️</div>
+            <p>Données envoyées à <b>NewPartReturns@xerox.com</b></p>
+            <button class="btn-main" onclick="location.reload()">Nouveau formulaire</button>
         </div>
     </div>
 </div>
 
 <script>
     let inventory = [];
-    const html5QrCode = new Html5Qrcode("reader");
+    let html5QrCode;
     const xeroxRegex = /^\d{3}[a-zA-Z]\d{5}$/;
-
-    window.onload = function() {
-        if (localStorage.getItem("savedPhone")) document.getElementById("phone").value = localStorage.getItem("savedPhone");
-        if (localStorage.getItem("savedEmpId")) document.getElementById("empId").value = localStorage.getItem("savedEmpId");
-        if (localStorage.getItem("savedEmail")) document.getElementById("userEmail").value = localStorage.getItem("savedEmail");
-    };
-
-    function saveAndGoToStep2() {
-        const fields = ["boxId", "location", "phone", "empId", "userEmail"];
-        for(let id of fields) {
-            if (!document.getElementById(id).value.trim()) {
-                alert("⚠️ Tous les champs sont requis."); return;
-            }
-        }
-        localStorage.setItem("savedPhone", document.getElementById("phone").value);
-        localStorage.setItem("savedEmpId", document.getElementById("empId").value);
-        localStorage.setItem("savedEmail", document.getElementById("userEmail").value);
-        goToStep(2);
-    }
 
     function goToStep(step) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.getElementById('step' + step).classList.add('active');
-        const titles = ["", "1. Informations Expédition", "2. Scan des pièces", "Envoi réussi"];
-        document.getElementById('headerTitle').innerText = titles[step];
-        if (step !== 2) stopScanner();
+        if (step !== 2 && html5QrCode) stopScanner();
     }
 
     function startScanner() {
-        const readerDiv = document.getElementById("reader");
-        readerDiv.style.display = "block";
+        document.getElementById("reader").style.display = "block";
         document.getElementById("btnToggleScan").style.display = "none";
-        document.getElementById("scanStatus").style.display = "none";
-
+        
+        html5QrCode = new Html5Qrcode("reader");
+        
         const config = { 
             fps: 20, 
-            qrbox: { width: 300, height: 150 },
-            aspectRatio: 1.0,
-            formatsToSupport: [ 
-                Html5QrcodeSupportedFormats.CODE_128, 
-                Html5QrcodeSupportedFormats.CODE_39,
-                Html5QrcodeSupportedFormats.CODE_93
-            ]
+            qrbox: { width: 320, height: 180 },
+            // ON FORCE LA HAUTE RÉSOLUTION ICI
+            videoConstraints: {
+                facingMode: "environment",
+                width: { min: 1280, ideal: 1920 },
+                height: { min: 720, ideal: 1080 }
+            }
         };
-        
+
         html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
-            const isXeroxFormat = addOrUpdatePiece(decodedText);
-            if (isXeroxFormat) stopScanner(); 
-        }).catch(err => console.error(err));
+            let cleanCode = decodedText.trim().replace(/\*/g, "").toUpperCase();
+            const statusDiv = document.getElementById("scanStatus");
+            statusDiv.style.display = "block";
+
+            if (xeroxRegex.test(cleanCode)) {
+                if (!inventory.find(i => i.code === cleanCode)) {
+                    inventory.push({ code: cleanCode, qty: 1 });
+                } else {
+                    inventory.find(i => i.code === cleanCode).qty++;
+                }
+                statusDiv.className = "status status-success";
+                statusDiv.innerText = "✅ Validé : " + cleanCode;
+                updateList();
+                stopScanner();
+            } else {
+                statusDiv.className = "status status-warning";
+                statusDiv.innerText = "⚠️ Ignoré : " + cleanCode;
+            }
+        }).catch(err => alert("Erreur : " + err));
     }
 
     function stopScanner() {
-        document.getElementById("reader").style.display = "none";
-        document.getElementById("btnToggleScan").style.display = "flex";
-        html5QrCode.stop().catch(() => {});
-    }
-
-    function addOrUpdatePiece(code) {
-        const statusDiv = document.getElementById("scanStatus");
-        statusDiv.style.display = "block";
-        
-        // NETTOYAGE : Enlève les étoiles (*) et les espaces
-        let cleanCode = code.trim().replace(/\*/g, "").toUpperCase();
-
-        if (!xeroxRegex.test(cleanCode)) {
-            statusDiv.className = "status status-warning";
-            statusDiv.innerText = "⚠️ Format ignoré : " + cleanCode;
-            return false; 
-        }
-
-        const existingItem = inventory.find(item => item.code === cleanCode);
-        if (existingItem) {
-            existingItem.qty += 1;
-        } else {
-            inventory.push({ code: cleanCode, qty: 1 });
-        }
-        
-        statusDiv.className = "status status-success";
-        statusDiv.innerText = "✅ Validé : " + cleanCode;
-        
-        updateList();
-        if (navigator.vibrate) navigator.vibrate(100);
-        return true; 
-    }
-
-    function manualEntry() {
-        const code = prompt("Entrez le code pièce (ex: 120E35553) :");
-        if (code) {
-            const valid = addOrUpdatePiece(code);
-            if (!valid) alert("Format invalide (Ex: 120E35553)");
+        if (html5QrCode) {
+            html5QrCode.stop().then(() => {
+                document.getElementById("reader").style.display = "none";
+                document.getElementById("btnToggleScan").style.display = "block";
+            }).catch(() => {});
         }
     }
 
     function updateList() {
         const listDiv = document.getElementById("itemList");
-        listDiv.innerHTML = `<h3 style="font-size: 1em; color: #666;">Liste des pièces (<span id="totalItems">${inventory.length}</span>)</h3>`;
-        inventory.forEach((item, index) => {
+        listDiv.innerHTML = `<h3>Liste des pièces (<span id="totalItems">${inventory.length}</span>)</h3>`;
+        inventory.forEach((item) => {
             const row = document.createElement("div");
             row.className = "item";
-            row.innerHTML = `<div class="item-info"><span class="item-code">${item.code}</span><span class="item-qty">QTY ${item.qty}</span></div><button class="btn-del" onclick="removePiece(${index})">Supprimer</button>`;
+            row.innerHTML = `<span><b>${item.code}</b> (QTY: ${item.qty})</span>`;
             listDiv.appendChild(row);
         });
     }
 
-    function removePiece(index) {
-        if(confirm("Supprimer cette référence ?")) {
-            inventory.splice(index, 1);
-            updateList();
+    function manualEntry() {
+        const code = prompt("Code pièce :");
+        if (code) {
+            let clean = code.replace(/\*/g, "").toUpperCase();
+            if (xeroxRegex.test(clean)) {
+                inventory.push({ code: clean, qty: 1 });
+                updateList();
+            } else { alert("Format invalide"); }
         }
-    }
-
-    function finalSubmit() {
-        if (inventory.length === 0) { alert("Veuillez scanner au moins une pièce."); return; }
-        goToStep(3);
-    }
-
-    function resetForm() {
-        inventory = [];
-        document.getElementById("boxId").value = "";
-        document.getElementById("location").value = "";
-        updateList();
-        goToStep(1);
     }
 </script>
 </body>
