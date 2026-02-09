@@ -3,39 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner Xerox - V1.8 SharePoint</title>
+    <title>Scanner Xerox - V1.9 Outlook</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         :root { --xerox-red: #DA291C; --xerox-dark-red: #B01D15; --success-green: #28a745; }
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background: #f4f4f4; color: #333; }
         .container { max-width: 500px; margin: 10px auto; background: white; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); overflow: hidden; min-height: 95vh; display: flex; flex-direction: column; }
-        
         h1 { font-size: 1.4em; margin: 0; color: var(--xerox-red); text-align: center; padding: 20px 15px; background: white; border-bottom: 1px solid #eee; }
         header { background: var(--xerox-red); color: white; padding: 12px; text-align: left; padding-left: 20px; font-weight: bold; }
-        
         .section { padding: 20px; display: none; flex-grow: 1; }
         .active { display: block; }
-
         .form-group { display: flex; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #f0f0f0; padding-bottom: 5px; }
         label { width: 110px; font-weight: bold; font-size: 0.85em; color: #666; }
         input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 15px; background: #fafafa; }
-
         button { width: 100%; border: none; padding: 15px; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .btn-main { background: var(--xerox-red); color: white; margin-top: 15px; }
         .btn-scan { background: #444; color: white; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-manual { background: var(--success-green); color: white; margin-top: 10px; }
         .btn-secondary { background: none; color: #666; text-decoration: underline; margin-top: 15px; font-size: 0.9em; }
-
         #reader { display: none; }
-        
         .item-list { margin-top: 25px; border-top: 2px solid var(--xerox-red); background: #fdfdfd; padding: 10px; }
         .item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; align-items: center; background: white; margin-bottom: 5px; border-radius: 4px; }
         .item-info { display: flex; flex-direction: column; }
         .item-code { font-family: 'Courier New', monospace; font-weight: bold; color: var(--xerox-red); font-size: 1.1em; }
         .item-qty { font-size: 0.9em; font-weight: bold; color: #555; margin-top: 2px; }
-        
         .btn-del { color: #888; border: 1px solid #ccc; background: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8em; width: auto; }
-
         .status { padding: 12px; border-radius: 6px; margin-top: 15px; text-align: center; font-weight: bold; }
         .success-box { text-align: center; padding: 40px 20px; }
         .success-icon { font-size: 50px; color: var(--success-green); margin-bottom: 20px; }
@@ -60,20 +52,13 @@
 
     <div id="step2" class="section">
         <input type="file" accept="image/*" capture="environment" id="fileInput" style="display:none;" onchange="scanFile(this)">
-        
-        <button id="btnTrigger" class="btn-scan" onclick="document.getElementById('fileInput').click()">
-            📷 Prendre une Photo du Code-barre
-        </button>
-
+        <button id="btnTrigger" class="btn-scan" onclick="document.getElementById('fileInput').click()">📷 Prendre une Photo du Code-barre</button>
         <div id="reader"></div>
         <div id="scanStatus" class="status" style="display:none; background: #d4edda; color: #155724; border: 1px solid #c3e6cb;"></div>
-        
         <button class="btn-manual" onclick="manualEntry()">Saisie Manuelle</button>
-
         <div class="item-list" id="itemList">
             <h3 style="font-size: 1em; color: #666;">Liste des pièces (<span id="totalItems">0</span>)</h3>
         </div>
-
         <button class="btn-main" onclick="finalSubmit()">Terminer et Envoyer</button>
         <button class="btn-secondary" onclick="goToStep(1)">← Retour</button>
     </div>
@@ -82,10 +67,10 @@
         <div class="success-box">
             <div class="success-icon">✔️</div>
             <div class="success-msg">
-                Vos données ont été envoyées à cette adresse :
-                <span class="success-email">NewPartReturns@xerox.com</span>
+                Vos données ont été préparées pour l'envoi.
                 <br>
-                Un courriel de confirmation vous sera envoyé d'ici 5 min.
+                Une fois le courriel envoyé, les données iront vers :
+                <span class="success-email">NewPartReturns@xerox.com</span>
             </div>
             <button class="btn-main" onclick="resetForm()" style="margin-top: 40px;">Nouveau formulaire</button>
         </div>
@@ -119,7 +104,7 @@
     function goToStep(step) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.getElementById('step' + step).classList.add('active');
-        const titles = ["", "1. Informations Expédition", "2. Scan des pièces", "Envoi réussi"];
+        const titles = ["", "1. Informations Expédition", "2. Scan des pièces", "Envoi en cours"];
         document.getElementById('headerTitle').innerText = titles[step];
     }
 
@@ -130,7 +115,6 @@
         statusDiv.style.background = "#fff3cd";
         statusDiv.style.color = "#856404";
         statusDiv.innerText = "Analyse de la photo en cours...";
-
         const imageFile = input.files[0];
         html5QrCode.scanFile(imageFile, true)
             .then(decodedText => {
@@ -149,7 +133,6 @@
         const statusDiv = document.getElementById("scanStatus");
         statusDiv.style.display = "block";
         const cleanCode = code.trim().replace(/\*/g, "").toUpperCase();
-
         if (regex.test(cleanCode)) {
             statusDiv.style.background = "#d4edda";
             statusDiv.style.color = "#155724";
@@ -191,48 +174,40 @@
         updateList();
     }
 
-    // --- MODIFICATION ICI : ENVOI VERS POWER AUTOMATE ---
-    async function finalSubmit() {
+    // --- NOUVELLE VERSION : ENVOI VIA OUTLOOK (SANS PREMIUM) ---
+    function finalSubmit() {
         if (inventory.length === 0) { alert("Liste vide."); return; }
+
+        // Construction du corps du texte pour Power Automate
+        let emailBody = "DEBUT_DONNEES\n";
+        emailBody += "BOXID:" + document.getElementById("boxId").value + "\n";
+        emailBody += "LOC:" + document.getElementById("location").value + "\n";
+        emailBody += "TEL:" + document.getElementById("phone").value + "\n";
+        emailBody += "EMPID:" + document.getElementById("empId").value + "\n";
+        emailBody += "EMAIL:" + document.getElementById("userEmail").value + "\n";
+        emailBody += "---PIECES---\n";
+
+        inventory.forEach(item => {
+            emailBody += "ITEM:" + item.code + "|QTY:" + item.qty + "\n";
+        });
         
-        const btn = document.querySelector("#step2 .btn-main");
-        const originalText = btn.innerText;
-        
-        try {
-            btn.disabled = true;
-            btn.innerText = "⌛ Envoi en cours...";
-            
-            // L'URL que tu obtiendras dans Power Automate (Trigger HTTP)
-            const flowUrl = "https://default9c2a31bde798488d986b90156ac8f2.9b.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2668b6204d1841abab4e07661c10f518/triggers/manual/paths/invoke?api-version=1"; 
+        emailBody += "FIN_DONNEES";
 
-            const data = {
-                boxId: document.getElementById("boxId").value,
-                location: document.getElementById("location").value,
-                phone: document.getElementById("phone").value,
-                empId: document.getElementById("empId").value,
-                userEmail: document.getElementById("userEmail").value,
-                items: inventory // Liste des pièces [ {code: "...", qty: 1}, ... ]
-            };
+        const subject = "DATA_SCAN_XEROX";
+        const recipient = "ton.courriel@xerox.com"; // Remplacer par ton adresse pour le test
 
-            const response = await fetch(flowUrl, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data)
-            });
+        // Création du lien mailto
+        const mailtoUrl = "mailto:" + recipient + 
+                          "?subject=" + encodeURIComponent(subject) + 
+                          "&body=" + encodeURIComponent(emailBody);
 
-            if (response.ok) {
-                goToStep(3);
-            } else {
-                throw new Error("Erreur serveur");
-            }
+        // Ouvre Outlook
+        window.location.href = mailtoUrl;
 
-        } catch (error) {
-            console.error("Erreur d'envoi:", error);
-            alert("❌ Échec de l'envoi. Vérifiez votre connexion internet.");
-        } finally {
-            btn.disabled = false;
-            btn.innerText = originalText;
-        }
+        // Passe à l'écran de succès après un court délai
+        setTimeout(() => {
+            goToStep(3);
+        }, 1500);
     }
 
     function resetForm() {
@@ -245,4 +220,3 @@
 </script>
 </body>
 </html>
-
