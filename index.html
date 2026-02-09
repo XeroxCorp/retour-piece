@@ -4,139 +4,133 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Scanner Xerox - V4 HD</title>
+    <title>Xerox Scanner V5</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        :root { --xerox-red: #DA291C; --success-green: #28a745; --warning-orange: #ffc107; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background: #f4f4f4; color: #333; }
-        .container { max-width: 500px; margin: 10px auto; background: white; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); overflow: hidden; min-height: 95vh; display: flex; flex-direction: column; }
-        h1 { font-size: 1.3em; margin: 0; color: var(--xerox-red); text-align: center; padding: 20px 10px; background: white; border-bottom: 1px solid #eee; }
-        header { background: var(--xerox-red); color: white; padding: 12px; text-align: left; padding-left: 20px; font-weight: bold; }
-        .section { padding: 20px; display: none; flex-grow: 1; }
+        :root { --xerox-red: #DA291C; --success-green: #28a745; }
+        body { font-family: sans-serif; margin: 0; background: #f4f4f4; }
+        .container { max-width: 500px; margin: auto; background: white; min-height: 100vh; display: flex; flex-direction: column; }
+        h1 { font-size: 1.2em; color: var(--xerox-red); text-align: center; padding: 15px; margin: 0; border-bottom: 1px solid #ddd; }
+        header { background: var(--xerox-red); color: white; padding: 10px; font-weight: bold; }
+        .section { padding: 20px; display: none; }
         .active { display: block; }
-        .form-group { display: flex; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #f0f0f0; padding-bottom: 5px; }
-        label { width: 110px; font-weight: bold; font-size: 0.85em; color: #666; }
-        input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; background: #fafafa; }
-        button { width: 100%; border: none; padding: 15px; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; }
-        .btn-main { background: var(--xerox-red); color: white; margin-top: 15px; }
-        .btn-scan { background: #444; color: white; margin-top: 10px; }
-        #reader { width: 100%; border-radius: 8px; margin-top: 15px; border: 2px solid #ddd; display: none; background: #000; }
-        .status { padding: 12px; border-radius: 6px; margin-top: 15px; text-align: center; font-weight: bold; }
-        .status-success { background: #d4edda; color: #155724; }
-        .status-warning { background: #fff3cd; color: #856404; }
-        .item-list { margin-top: 25px; border-top: 2px solid var(--xerox-red); padding: 10px; }
-        .item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; background: white; margin-bottom: 5px; }
+        .form-group { margin-bottom: 10px; }
+        label { display: block; font-size: 0.8em; font-weight: bold; color: #666; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 15px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-main { background: var(--xerox-red); color: white; }
+        .btn-scan { background: #333; color: white; }
+        #reader { width: 100%; margin-top: 15px; border-radius: 8px; }
+        .status { padding: 10px; margin-top: 10px; border-radius: 4px; text-align: center; font-weight: bold; display: none; }
+        .status-ok { background: #d4edda; color: #155724; }
+        .status-err { background: #fff3cd; color: #856404; }
+        .item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Xerox Retour - V4 HD</h1>
-    <header id="headerTitle">1. Informations Expédition</header>
+    <h1>Xerox Retour - V5</h1>
+    <header id="headerTitle">1. Infos Expéditeur</header>
 
     <div id="step1" class="section active">
-        <div class="form-group"><label>BoxID</label><input type="text" id="boxId" placeholder="Ex: 123456"></div>
-        <div class="form-group"><label>Emplacement</label><input type="text" id="location" placeholder="Ex: PD, locker..."></div>
-        <div class="form-group"><label>Téléphone</label><input type="tel" id="phone" placeholder="418-xxx-xxxx"></div>
-        <div class="form-group"><label># Employé</label><input type="text" id="empId" placeholder="Ex: 012345"></div>
-        <div class="form-group" style="border:none;"><label>Votre courriel</label><input type="email" id="userEmail" placeholder="nom@xerox.com"></div>
+        <div class="form-group"><label>BoxID</label><input type="text" id="boxId"></div>
+        <div class="form-group"><label>Emplacement</label><input type="text" id="location"></div>
+        <div class="form-group"><label>Téléphone</label><input type="tel" id="phone"></div>
+        <div class="form-group"><label># Employé</label><input type="text" id="empId"></div>
+        <div class="form-group"><label>Courriel</label><input type="email" id="userEmail"></div>
         <button class="btn-main" onclick="goToStep(2)">Suivant</button>
     </div>
 
     <div id="step2" class="section">
-        <button id="btnToggleScan" class="btn-scan" onclick="startScanner()">📷 Activer la Caméra HD</button>
+        <button id="btnStart" class="btn-scan" onclick="startScanner()">📷 Activer la Caméra</button>
         <div id="reader"></div>
-        <div id="scanStatus" class="status" style="display:none;"></div>
-        <button class="btn-main" onclick="manualEntry()" style="background: #28a745; margin-top:10px;">Saisie Manuelle</button>
-        <div class="item-list" id="itemList"><h3>Liste des pièces (<span id="totalItems">0</span>)</h3></div>
+        <div id="scanStatus" class="status"></div>
+        
+        <button class="btn-main" onclick="manualEntry()" style="background:#28a745">Saisie Manuelle</button>
+        <div id="itemList" style="margin-top:20px;"><b>Liste des pièces (0)</b></div>
+        
         <button class="btn-main" onclick="goToStep(3)">Terminer et Envoyer</button>
+        <button onclick="goToStep(1)" style="background:none; text-decoration:underline; color:#666;">Retour</button>
     </div>
 
-    <div id="step3" class="section">
-        <div style="text-align:center; padding: 40px 10px;">
-            <div style="font-size: 50px; color: green;">✔️</div>
-            <p>Données envoyées à <b>NewPartReturns@xerox.com</b></p>
-            <button class="btn-main" onclick="location.reload()">Nouveau formulaire</button>
-        </div>
+    <div id="step3" class="section" style="text-align:center;">
+        <p style="font-size: 50px;">✔️</p>
+        <p>Données prêtes à être envoyées.</p>
+        <button class="btn-main" onclick="location.reload()">Nouveau formulaire</button>
     </div>
 </div>
 
 <script>
     let inventory = [];
-    let html5QrCode;
+    let scanner = null;
     const xeroxRegex = /^\d{3}[a-zA-Z]\d{5}$/;
 
-    function goToStep(step) {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.getElementById('step' + step).classList.add('active');
-        if (step !== 2 && html5QrCode) stopScanner();
+    function goToStep(s) {
+        document.querySelectorAll('.section').forEach(div => div.classList.remove('active'));
+        document.getElementById('step' + s).classList.add('active');
+        if (s !== 2) stopScanner();
     }
 
     function startScanner() {
-        document.getElementById("reader").style.display = "block";
-        document.getElementById("btnToggleScan").style.display = "none";
+        document.getElementById('btnStart').style.display = 'none';
         
-        html5QrCode = new Html5Qrcode("reader");
+        // On initialise le scanner SANS forcer de résolution complexe
+        scanner = new Html5Qrcode("reader");
         
         const config = { 
-            fps: 20, 
-            qrbox: { width: 320, height: 180 },
-            // ON FORCE LA HAUTE RÉSOLUTION ICI
-            videoConstraints: {
-                facingMode: "environment",
-                width: { min: 1280, ideal: 1920 },
-                height: { min: 720, ideal: 1080 }
-            }
+            fps: 10, 
+            qrbox: { width: 280, height: 150 }
         };
 
-        html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
-            let cleanCode = decodedText.trim().replace(/\*/g, "").toUpperCase();
-            const statusDiv = document.getElementById("scanStatus");
-            statusDiv.style.display = "block";
+        scanner.start(
+            { facingMode: "environment" }, 
+            config, 
+            (decodedText) => {
+                // NETTOYAGE DES ÉTOILES *
+                let code = decodedText.trim().replace(/\*/g, "").toUpperCase();
+                const status = document.getElementById("scanStatus");
+                status.style.display = "block";
 
-            if (xeroxRegex.test(cleanCode)) {
-                if (!inventory.find(i => i.code === cleanCode)) {
-                    inventory.push({ code: cleanCode, qty: 1 });
+                if (xeroxRegex.test(code)) {
+                    inventory.push({code: code, qty: 1});
+                    status.className = "status status-ok";
+                    status.innerText = "✅ Validé : " + code;
+                    updateList();
+                    stopScanner();
                 } else {
-                    inventory.find(i => i.code === cleanCode).qty++;
+                    status.className = "status status-err";
+                    status.innerText = "⚠️ Mauvais format : " + code;
                 }
-                statusDiv.className = "status status-success";
-                statusDiv.innerText = "✅ Validé : " + cleanCode;
-                updateList();
-                stopScanner();
-            } else {
-                statusDiv.className = "status status-warning";
-                statusDiv.innerText = "⚠️ Ignoré : " + cleanCode;
             }
-        }).catch(err => alert("Erreur : " + err));
+        ).catch(err => {
+            alert("Erreur caméra : " + err);
+            document.getElementById('btnStart').style.display = 'block';
+        });
     }
 
     function stopScanner() {
-        if (html5QrCode) {
-            html5QrCode.stop().then(() => {
-                document.getElementById("reader").style.display = "none";
-                document.getElementById("btnToggleScan").style.display = "block";
+        if (scanner) {
+            scanner.stop().then(() => {
+                document.getElementById('btnStart').style.display = 'block';
             }).catch(() => {});
         }
     }
 
     function updateList() {
-        const listDiv = document.getElementById("itemList");
-        listDiv.innerHTML = `<h3>Liste des pièces (<span id="totalItems">${inventory.length}</span>)</h3>`;
-        inventory.forEach((item) => {
-            const row = document.createElement("div");
-            row.className = "item";
-            row.innerHTML = `<span><b>${item.code}</b> (QTY: ${item.qty})</span>`;
-            listDiv.appendChild(row);
+        const div = document.getElementById("itemList");
+        div.innerHTML = `<b>Liste des pièces (${inventory.length})</b>`;
+        inventory.forEach(item => {
+            div.innerHTML += `<div class="item"><span>${item.code}</span></div>`;
         });
     }
 
     function manualEntry() {
-        const code = prompt("Code pièce :");
+        let code = prompt("Code pièce :");
         if (code) {
             let clean = code.replace(/\*/g, "").toUpperCase();
             if (xeroxRegex.test(clean)) {
-                inventory.push({ code: clean, qty: 1 });
+                inventory.push({code: clean, qty: 1});
                 updateList();
             } else { alert("Format invalide"); }
         }
