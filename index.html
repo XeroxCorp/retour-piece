@@ -127,13 +127,22 @@
     }
 
     // --- MODIFICATION ICI : AJOUT DU ZOOM ---
+<script>
+    // ... (garder le début de ton script identique)
+
     async function startScanner() {
         const readerDiv = document.getElementById("reader");
         readerDiv.style.display = "block";
         document.getElementById("btnToggleScan").style.display = "none";
         document.getElementById("scanStatus").style.display = "none";
 
-        const config = { fps: 20, qrbox: { width: 280, height: 150 }, aspectRatio: 1.0 };
+        // CONFIGURATION OPTIMISÉE POUR S23
+        // On réduit la QRBOX : ça force le moteur à ignorer le flou sur les bords
+        const config = { 
+            fps: 25, 
+            qrbox: { width: 220, height: 100 }, // Zone plus petite = focus plus précis
+            aspectRatio: 1.0 
+        };
         
         try {
             await html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
@@ -141,18 +150,46 @@
                 stopScanner(); 
             });
 
-            // Tentative d'activation du zoom après le démarrage
+            // Tentative de zoom spécifique Samsung (certains S23 l'acceptent via applyConstraints)
             const videoTrack = html5QrCode.getVideoTrack();
             if (videoTrack) {
                 const capabilities = videoTrack.getCapabilities();
                 if (capabilities.zoom) {
+                    // On demande un zoom de 2.5x pour compenser la distance de 20cm
                     await videoTrack.applyConstraints({
-                        advanced: [{ zoom: Math.min(2.0, capabilities.zoom.max) }]
+                        advanced: [{ zoom: 2.5 }] 
                     });
                 }
             }
         } catch (err) {
             console.error(err);
+        }
+    }
+
+    function addOrUpdatePiece(code) {
+        const statusDiv = document.getElementById("scanStatus");
+        statusDiv.style.display = "block";
+        statusDiv.style.background = "#d4edda";
+        statusDiv.style.color = "#155724";
+        
+        // NETTOYAGE DES ÉTOILES XEROX (*)
+        const cleanCode = code.trim().replace(/\*/g, "").toUpperCase();
+
+        if (regex.test(cleanCode)) {
+            const existingItem = inventory.find(item => item.code === cleanCode);
+            if (existingItem) {
+                existingItem.qty += 1;
+                statusDiv.innerText = "➕ Quantité mise à jour : " + cleanCode;
+            } else {
+                inventory.push({ code: cleanCode, qty: 1 });
+                statusDiv.innerText = "✅ Ajouté : " + cleanCode;
+            }
+            updateList();
+            if (navigator.vibrate) navigator.vibrate(100);
+        } else {
+            statusDiv.style.background = "#f8d7da";
+            statusDiv.style.color = "#721c24";
+            statusDiv.innerText = "❌ Format invalide : " + cleanCode;
         }
     }
 
@@ -227,3 +264,4 @@
 </script>
 </body>
 </html>
+
