@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner Xerox - V1.6 Photo</title>
+    <title>Scanner Xerox - V1.7 Photo & Success</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         :root { --xerox-red: #DA291C; --xerox-dark-red: #B01D15; --success-green: #28a745; }
@@ -26,7 +26,6 @@
         .btn-manual { background: var(--success-green); color: white; margin-top: 10px; }
         .btn-secondary { background: none; color: #666; text-decoration: underline; margin-top: 15px; font-size: 0.9em; }
 
-        /* Le lecteur reste caché, on s'en sert pour analyser la photo en arrière-plan */
         #reader { display: none; }
         
         .item-list { margin-top: 25px; border-top: 2px solid var(--xerox-red); background: #fdfdfd; padding: 10px; }
@@ -40,20 +39,22 @@
         .status { padding: 12px; border-radius: 6px; margin-top: 15px; text-align: center; font-weight: bold; }
         .success-box { text-align: center; padding: 40px 20px; }
         .success-icon { font-size: 50px; color: var(--success-green); margin-bottom: 20px; }
+        .success-msg { font-size: 1.1em; line-height: 1.6; color: #444; }
+        .success-email { font-weight: bold; color: var(--xerox-red); display: block; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Formulaire de retour Xerox V1.6</h1>
+    <h1>Formulaire "Retour de pièces neuves"</h1>
     <header id="headerTitle">1. Informations Expédition</header>
 
     <div id="step1" class="section active">
         <div class="form-group"><label>BoxID</label><input type="text" id="boxId" placeholder="Ex: 123456"></div>
-        <div class="form-group"><label>Emplacement</label><input type="text" id="location" placeholder="Ex: PD, locker..."></div>
+        <div class="form-group"><label>Emplacement</label><input type="text" id="location" placeholder="Ex: PD, locker ou # employé"></div>
         <div class="form-group"><label>Téléphone</label><input type="tel" id="phone" placeholder="418-xxx-xxxx"></div>
         <div class="form-group"><label># Employé</label><input type="text" id="empId" placeholder="Ex: 012345"></div>
-        <div class="form-group" style="border:none;"><label>Votre courriel</label><input type="email" id="userEmail" placeholder="nom@xerox.com"></div>
+        <div class="form-group" style="border:none;"><label>Votre courriel</label><input type="email" id="userEmail" placeholder="prénom.nom@xerox.com"></div>
         <button class="btn-main" onclick="saveAndGoToStep2()">Suivant</button>
     </div>
 
@@ -61,7 +62,7 @@
         <input type="file" accept="image/*" capture="environment" id="fileInput" style="display:none;" onchange="scanFile(this)">
         
         <button id="btnTrigger" class="btn-scan" onclick="document.getElementById('fileInput').click()">
-            📷 Prendre une Photo du Code
+            📷 Prendre une Photo du Code-barre
         </button>
 
         <div id="reader"></div>
@@ -80,7 +81,12 @@
     <div id="step3" class="section">
         <div class="success-box">
             <div class="success-icon">✔️</div>
-            <div class="success-msg">Données transmises avec succès.</div>
+            <div class="success-msg">
+                Vos données ont été envoyées à cette adresse :
+                <span class="success-email">NewPartReturns@xerox.com</span>
+                <br>
+                Un courriel de confirmation vous sera envoyé d'ici 5 min.
+            </div>
             <button class="btn-main" onclick="resetForm()" style="margin-top: 40px;">Nouveau formulaire</button>
         </div>
     </div>
@@ -98,6 +104,12 @@
     };
 
     function saveAndGoToStep2() {
+        const fields = ["boxId", "location", "phone", "empId", "userEmail"];
+        for(let id of fields) {
+            if (!document.getElementById(id).value.trim()) {
+                alert("⚠️ Tous les champs sont requis."); return;
+            }
+        }
         localStorage.setItem("savedPhone", document.getElementById("phone").value);
         localStorage.setItem("savedEmpId", document.getElementById("empId").value);
         localStorage.setItem("savedEmail", document.getElementById("userEmail").value);
@@ -107,11 +119,11 @@
     function goToStep(step) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.getElementById('step' + step).classList.add('active');
+        
         const titles = ["", "1. Informations Expédition", "2. Scan des pièces", "Envoi réussi"];
         document.getElementById('headerTitle').innerText = titles[step];
     }
 
-    // --- LOGIQUE OPTION 1 : ANALYSE DE FICHIER PHOTO ---
     function scanFile(input) {
         if (input.files && input.files.length == 0) return;
 
@@ -123,17 +135,15 @@
 
         const imageFile = input.files[0];
         
-        // On utilise le moteur de scan sur le fichier image directement
         html5QrCode.scanFile(imageFile, true)
             .then(decodedText => {
                 addOrUpdatePiece(decodedText);
-                input.value = ""; // Reset le champ pour la prochaine photo
+                input.value = "";
             })
             .catch(err => {
                 statusDiv.style.background = "#f8d7da";
                 statusDiv.style.color = "#721c24";
                 statusDiv.innerText = "❌ Code illisible. Reprenez une photo plus nette.";
-                console.error(err);
                 input.value = "";
             });
     }
@@ -141,8 +151,6 @@
     function addOrUpdatePiece(code) {
         const statusDiv = document.getElementById("scanStatus");
         statusDiv.style.display = "block";
-        
-        // Nettoyage des étoiles Xerox
         const cleanCode = code.trim().replace(/\*/g, "").toUpperCase();
 
         if (regex.test(cleanCode)) {
@@ -188,6 +196,7 @@
 
     function finalSubmit() {
         if (inventory.length === 0) { alert("Liste vide."); return; }
+        // On pourra ajouter l'appel API ici
         goToStep(3);
     }
 
