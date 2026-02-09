@@ -2,45 +2,91 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner Xerox - Confirmation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Scanner Xerox - Retour de Pièces</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        :root { --xerox-red: #DA291C; --xerox-dark-red: #B01D15; --success-green: #28a745; }
+        :root { 
+            --xerox-red: #DA291C; 
+            --xerox-dark-red: #B01D15; 
+            --success-green: #28a745; 
+            --warning-orange: #ffc107;
+        }
+
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background: #f4f4f4; color: #333; }
-        .container { max-width: 500px; margin: 10px auto; background: white; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); overflow: hidden; min-height: 95vh; display: flex; flex-direction: column; }
         
-        h1 { font-size: 1.4em; margin: 0; color: var(--xerox-red); text-align: center; padding: 20px 15px; background: white; border-bottom: 1px solid #eee; }
-        header { background: var(--xerox-red); color: white; padding: 12px; text-align: left; padding-left: 20px; font-weight: bold; }
+        /* Structure principale */
+        .container { 
+            max-width: 500px; 
+            margin: 10px auto; 
+            background: white; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+            overflow: hidden; 
+            min-height: 95vh; 
+            display: flex; 
+            flex-direction: column; 
+        }
+        
+        /* Titre Xerox */
+        h1 { 
+            font-size: 1.3em; 
+            margin: 0; 
+            color: var(--xerox-red); 
+            text-align: center; 
+            padding: 20px 10px; 
+            background: white; 
+            border-bottom: 1px solid #eee; 
+        }
+
+        /* Bandeau d'étape */
+        header { 
+            background: var(--xerox-red); 
+            color: white; 
+            padding: 12px; 
+            text-align: left; 
+            padding-left: 20px; 
+            font-weight: bold; 
+            font-size: 0.95em;
+        }
         
         .section { padding: 20px; display: none; flex-grow: 1; }
         .active { display: block; }
 
+        /* Formulaire */
         .form-group { display: flex; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #f0f0f0; padding-bottom: 5px; }
         label { width: 110px; font-weight: bold; font-size: 0.85em; color: #666; }
-        input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 15px; background: #fafafa; }
+        input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; background: #fafafa; }
+        input:focus { outline: none; border-color: var(--xerox-red); background: white; }
 
+        /* Boutons */
         button { width: 100%; border: none; padding: 15px; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .btn-main { background: var(--xerox-red); color: white; margin-top: 15px; }
         .btn-scan { background: #444; color: white; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-manual { background: var(--success-green); color: white; margin-top: 10px; }
-        .btn-secondary { background: none; color: #666; text-decoration: underline; margin-top: 15px; font-size: 0.9em; }
+        .btn-secondary { background: none; color: #666; text-decoration: underline; margin-top: 15px; font-size: 0.9em; width: auto; }
 
-        #reader { width: 100%; border-radius: 8px; overflow: hidden; margin-top: 15px; border: 2px solid #ddd; display: none; }
+        /* Zone de Scan */
+        #reader { width: 100%; border-radius: 8px; overflow: hidden; margin-top: 15px; border: 2px solid #ddd; display: none; background: #000; }
         
+        /* Statuts de scan */
+        .status { padding: 12px; border-radius: 6px; margin-top: 15px; text-align: center; font-weight: bold; font-size: 0.9em; }
+        .status-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .status-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+
+        /* Liste des pièces */
         .item-list { margin-top: 25px; border-top: 2px solid var(--xerox-red); background: #fdfdfd; padding: 10px; }
         .item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; align-items: center; background: white; margin-bottom: 5px; border-radius: 4px; }
         .item-info { display: flex; flex-direction: column; }
         .item-code { font-family: 'Courier New', monospace; font-weight: bold; color: var(--xerox-red); font-size: 1.1em; }
         .item-qty { font-size: 0.9em; font-weight: bold; color: #555; margin-top: 2px; }
-        
-        .btn-del { color: #888; border: 1px solid #ccc; background: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8em; width: auto; }
+        .btn-del { color: #888; border: 1px solid #ccc; background: white; padding: 6px 10px; border-radius: 4px; font-size: 0.75em; width: auto; }
 
-        .status { padding: 12px; border-radius: 6px; margin-top: 15px; text-align: center; font-weight: bold; }
-        .success-box { text-align: center; padding: 40px 20px; }
-        .success-icon { font-size: 50px; color: var(--success-green); margin-bottom: 20px; }
+        /* Page de succès */
+        .success-box { text-align: center; padding: 40px 10px; }
+        .success-icon { font-size: 60px; color: var(--success-green); margin-bottom: 20px; }
         .success-msg { font-size: 1.1em; line-height: 1.6; color: #444; }
-        .success-email { font-weight: bold; color: var(--xerox-red); display: block; margin-top: 10px; }
+        .success-email { font-weight: bold; color: var(--xerox-red); display: block; margin: 15px 0; text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -51,17 +97,17 @@
 
     <div id="step1" class="section active">
         <div class="form-group"><label>BoxID</label><input type="text" id="boxId" placeholder="Ex: 123456"></div>
-        <div class="form-group"><label>Emplacement</label><input type="text" id="location" placeholder="Ex: PD, locker ou # employé"></div>
+        <div class="form-group"><label>Emplacement</label><input type="text" id="location" placeholder="Ex: PD, locker..."></div>
         <div class="form-group"><label>Téléphone</label><input type="tel" id="phone" placeholder="418-xxx-xxxx"></div>
         <div class="form-group"><label># Employé</label><input type="text" id="empId" placeholder="Ex: 012345"></div>
-        <div class="form-group" style="border:none;"><label>Votre courriel</label><input type="email" id="userEmail" placeholder="prénom.nom@xerox.com"></div>
+        <div class="form-group" style="border:none;"><label>Votre courriel</label><input type="email" id="userEmail" placeholder="nom@xerox.com"></div>
         <button class="btn-main" onclick="saveAndGoToStep2()">Suivant</button>
     </div>
 
     <div id="step2" class="section">
         <button id="btnToggleScan" class="btn-scan" onclick="startScanner()">📷 Activer la Caméra</button>
         <div id="reader"></div>
-        <div id="scanStatus" class="status" style="display:none; background: #d4edda; color: #155724; border: 1px solid #c3e6cb;"></div>
+        <div id="scanStatus" class="status" style="display:none;"></div>
         
         <button class="btn-manual" onclick="manualEntry()">Saisie Manuelle</button>
 
@@ -70,7 +116,7 @@
         </div>
 
         <button class="btn-main" onclick="finalSubmit()">Terminer et Envoyer</button>
-        <button class="btn-secondary" onclick="goToStep(1)">← Retour</button>
+        <button class="btn-secondary" onclick="goToStep(1)">← Modifier infos</button>
     </div>
 
     <div id="step3" class="section">
@@ -79,7 +125,6 @@
             <div class="success-msg">
                 Vos données ont été envoyées à cette adresse :
                 <span class="success-email">NewPartReturns@xerox.com</span>
-                <br>
                 Un courriel de confirmation vous sera envoyé d'ici 5 min.
             </div>
             <button class="btn-main" onclick="resetForm()" style="margin-top: 40px;">Nouveau formulaire</button>
@@ -90,8 +135,10 @@
 <script>
     let inventory = [];
     const html5QrCode = new Html5Qrcode("reader");
-    const regex = /^\d{3}[a-zA-Z]\d{5}$/;
+    // Format Xerox : 3 chiffres, 1 lettre, 5 chiffres
+    const xeroxRegex = /^\d{3}[a-zA-Z]\d{5}$/;
 
+    // CHARGEMENT MÉMOIRE
     window.onload = function() {
         if (localStorage.getItem("savedPhone")) document.getElementById("phone").value = localStorage.getItem("savedPhone");
         if (localStorage.getItem("savedEmpId")) document.getElementById("empId").value = localStorage.getItem("savedEmpId");
@@ -102,9 +149,10 @@
         const fields = ["boxId", "location", "phone", "empId", "userEmail"];
         for(let id of fields) {
             if (!document.getElementById(id).value.trim()) {
-                alert("⚠️ Tous les champs sont requis."); return;
+                alert("⚠️ Erreur : Tous les champs sont obligatoires."); return;
             }
         }
+        // Sauvegarde
         localStorage.setItem("savedPhone", document.getElementById("phone").value);
         localStorage.setItem("savedEmpId", document.getElementById("empId").value);
         localStorage.setItem("savedEmail", document.getElementById("userEmail").value);
@@ -115,15 +163,9 @@
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.getElementById('step' + step).classList.add('active');
         
-        if (step === 1) {
-            document.getElementById('headerTitle').innerText = "1. Informations Expédition";
-            stopScanner();
-        } else if (step === 2) {
-            document.getElementById('headerTitle').innerText = "2. Scan des pièces";
-        } else if (step === 3) {
-            document.getElementById('headerTitle').innerText = "Envoi réussi";
-            stopScanner();
-        }
+        const titles = ["", "1. Informations Expédition", "2. Scan des pièces", "Envoi réussi"];
+        document.getElementById('headerTitle').innerText = titles[step];
+        if (step !== 2) stopScanner();
     }
 
     function startScanner() {
@@ -132,11 +174,24 @@
         document.getElementById("btnToggleScan").style.display = "none";
         document.getElementById("scanStatus").style.display = "none";
 
-        const config = { fps: 20, qrbox: { width: 280, height: 150 }, aspectRatio: 1.0 };
+        // CONFIGURATION OPTIMISÉE POUR CODES BARRES XEROX
+        const config = { 
+            fps: 15, 
+            qrbox: { width: 300, height: 120 }, // Zone horizontale pour code barre
+            aspectRatio: 1.0,
+            formatsToSupport: [ 
+                Html5QrcodeSupportedFormats.CODE_128, 
+                Html5QrcodeSupportedFormats.CODE_39 
+            ]
+        };
         
         html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
-            addOrUpdatePiece(decodedText);
-            stopScanner(); 
+            const isXeroxFormat = addOrUpdatePiece(decodedText);
+            
+            // LOGIQUE : On ne ferme que si c'est un format valide
+            if (isXeroxFormat) {
+                stopScanner(); 
+            }
         }).catch(err => console.error(err));
     }
 
@@ -151,57 +206,73 @@
         statusDiv.style.display = "block";
         const cleanCode = code.trim().toUpperCase();
 
-        if (regex.test(cleanCode)) {
-            const existingItem = inventory.find(item => item.code === cleanCode);
-            if (existingItem) {
-                existingItem.qty += 1;
-                statusDiv.innerText = "➕ Quantité mise à jour : " + cleanCode;
-            } else {
-                inventory.push({ code: cleanCode, qty: 1 });
-                statusDiv.innerText = "✅ Ajouté : " + cleanCode;
-            }
-            updateList();
-            if (navigator.vibrate) navigator.vibrate(100);
-        } else {
-            statusDiv.style.background = "#f8d7da";
-            statusDiv.style.color = "#721c24";
-            statusDiv.innerText = "❌ Format invalide : " + cleanCode;
+        // 1. Vérification du format
+        if (!xeroxRegex.test(cleanCode)) {
+            statusDiv.className = "status status-warning";
+            statusDiv.innerText = "⚠️ Format ignoré : " + cleanCode;
+            return false; // Indique au scanner de continuer
         }
+
+        // 2. Ajout ou mise à jour QTY
+        const existingItem = inventory.find(item => item.code === cleanCode);
+        if (existingItem) {
+            existingItem.qty += 1;
+        } else {
+            inventory.push({ code: cleanCode, qty: 1 });
+        }
+        
+        statusDiv.className = "status status-success";
+        statusDiv.innerText = "✅ Validé : " + cleanCode;
+        
+        updateList();
+        if (navigator.vibrate) navigator.vibrate(100);
+        return true; // Indique au scanner qu'il peut s'arrêter
     }
 
     function manualEntry() {
-        const code = prompt("Entrez le code pièce (ex: 123A45678) :");
-        if (code) addOrUpdatePiece(code);
+        const code = prompt("Entrez le code pièce (ex: 019N00947) :");
+        if (code) {
+            const valid = addOrUpdatePiece(code);
+            if (!valid) alert("Format invalide. Utilisez le format 000X00000");
+        }
     }
 
     function updateList() {
         const listDiv = document.getElementById("itemList");
         listDiv.innerHTML = `<h3 style="font-size: 1em; color: #666;">Liste des pièces (<span id="totalItems">${inventory.length}</span>)</h3>`;
+        
         inventory.forEach((item, index) => {
             const row = document.createElement("div");
             row.className = "item";
-            row.innerHTML = `<div class="item-info"><span class="item-code">${item.code}</span><span class="item-qty">QTY ${item.qty}</span></div><button class="btn-del" onclick="removePiece(${index})">Supprimer</button>`;
+            row.innerHTML = `
+                <div class="item-info">
+                    <span class="item-code">${item.code}</span>
+                    <span class="item-qty">QTY ${item.qty}</span>
+                </div>
+                <button class="btn-del" onclick="removePiece(${index})">Supprimer</button>
+            `;
             listDiv.appendChild(row);
         });
     }
 
     function removePiece(index) {
-        inventory.splice(index, 1);
-        updateList();
+        if(confirm("Supprimer cette référence ?")) {
+            inventory.splice(index, 1);
+            updateList();
+        }
     }
 
     function finalSubmit() {
-        if (inventory.length === 0) { alert("Liste vide."); return; }
-        
-        // Ici se fera l'appel Power Automate plus tard
-        console.log("Données envoyées :", inventory);
-        
-        // Transition vers la page de succès
+        if (inventory.length === 0) {
+            alert("Veuillez scanner au moins une pièce.");
+            return;
+        }
+        // Simulation d'envoi
+        console.log("Envoi final...", inventory);
         goToStep(3);
     }
 
     function resetForm() {
-        // On vide l'inventaire et le BoxID, mais on garde les infos employé
         inventory = [];
         document.getElementById("boxId").value = "";
         document.getElementById("location").value = "";
