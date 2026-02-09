@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Xerox Scanner V5</title>
+    <title>Xerox Scanner V6 - Précision</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         :root { --xerox-red: #DA291C; --success-green: #28a745; }
@@ -20,7 +20,7 @@
         button { width: 100%; padding: 15px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-main { background: var(--xerox-red); color: white; }
         .btn-scan { background: #333; color: white; }
-        #reader { width: 100%; margin-top: 15px; border-radius: 8px; }
+        #reader { width: 100%; margin-top: 15px; border-radius: 8px; border: 2px solid #ccc; }
         .status { padding: 10px; margin-top: 10px; border-radius: 4px; text-align: center; font-weight: bold; display: none; }
         .status-ok { background: #d4edda; color: #155724; }
         .status-err { background: #fff3cd; color: #856404; }
@@ -30,7 +30,7 @@
 <body>
 
 <div class="container">
-    <h1>Xerox Retour - V5</h1>
+    <h1>Xerox Retour - V6 (Précision)</h1>
     <header id="headerTitle">1. Infos Expéditeur</header>
 
     <div id="step1" class="section active">
@@ -44,7 +44,7 @@
 
     <div id="step2" class="section">
         <button id="btnStart" class="btn-scan" onclick="startScanner()">📷 Activer la Caméra</button>
-        <div id="reader"></div>
+        <div id="reader" style="display:none;"></div>
         <div id="scanStatus" class="status"></div>
         
         <button class="btn-main" onclick="manualEntry()" style="background:#28a745">Saisie Manuelle</button>
@@ -56,7 +56,7 @@
 
     <div id="step3" class="section" style="text-align:center;">
         <p style="font-size: 50px;">✔️</p>
-        <p>Données prêtes à être envoyées.</p>
+        <p>Prêt pour Power Automate.</p>
         <button class="btn-main" onclick="location.reload()">Nouveau formulaire</button>
     </div>
 </div>
@@ -64,6 +64,8 @@
 <script>
     let inventory = [];
     let scanner = null;
+    let lastCode = "";
+    let lastTime = 0;
     const xeroxRegex = /^\d{3}[a-zA-Z]\d{5}$/;
 
     function goToStep(s) {
@@ -74,38 +76,53 @@
 
     function startScanner() {
         document.getElementById('btnStart').style.display = 'none';
+        document.getElementById('reader').style.display = 'block';
         
-        // On initialise le scanner SANS forcer de résolution complexe
         scanner = new Html5Qrcode("reader");
         
+        // On ralentit le scanner pour plus de précision
         const config = { 
-            fps: 10, 
-            qrbox: { width: 280, height: 150 }
+            fps: 5, 
+            qrbox: { width: 280, height: 120 }
         };
 
         scanner.start(
             { facingMode: "environment" }, 
             config, 
             (decodedText) => {
-                // NETTOYAGE DES ÉTOILES *
                 let code = decodedText.trim().replace(/\*/g, "").toUpperCase();
-                const status = document.getElementById("scanStatus");
-                status.style.display = "block";
+                let now = Date.now();
 
+                // FILTRE : On vérifie le format Xerox
                 if (xeroxRegex.test(code)) {
-                    inventory.push({code: code, qty: 1});
-                    status.className = "status status-ok";
-                    status.innerText = "✅ Validé : " + code;
-                    updateList();
-                    stopScanner();
+                    // VALIDATION DOUBLE : On doit voir le même code 2 fois de suite
+                    // ou attendre 1.5 seconde pour éviter les doublons accidentels
+                    if (code === lastCode || (now - lastTime) < 1500) {
+                        const status = document.getElementById("scanStatus");
+                        status.style.display = "block";
+                        
+                        // Si c'est un nouveau code valide confirmé
+                        if (code === lastCode) {
+                            inventory.push({code: code, qty: 1});
+                            status.className = "status status-ok";
+                            status.innerText = "✅ Validé : " + code;
+                            updateList();
+                            stopScanner();
+                            lastCode = ""; // Reset
+                        }
+                    }
+                    lastCode = code;
+                    lastTime = now;
                 } else {
+                    const status = document.getElementById("scanStatus");
+                    status.style.display = "block";
                     status.className = "status status-err";
-                    status.innerText = "⚠️ Mauvais format : " + code;
+                    status.innerText = "⚠️ Code non Xerox détecté";
                 }
             }
         ).catch(err => {
-            alert("Erreur caméra : " + err);
-            document.getElementById('btnStart').style.display = 'block';
+            alert("Erreur : " + err);
+            stopScanner();
         });
     }
 
@@ -113,6 +130,7 @@
         if (scanner) {
             scanner.stop().then(() => {
                 document.getElementById('btnStart').style.display = 'block';
+                document.getElementById('reader').style.display = 'none';
             }).catch(() => {});
         }
     }
@@ -132,7 +150,7 @@
             if (xeroxRegex.test(clean)) {
                 inventory.push({code: clean, qty: 1});
                 updateList();
-            } else { alert("Format invalide"); }
+            } else { alert("Format invalide (Ex: 019N00947)"); }
         }
     }
 </script>
