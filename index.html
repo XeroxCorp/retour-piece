@@ -74,30 +74,25 @@
         .item-code { font-family: 'Courier New', monospace; font-weight: bold; color: var(--xerox-red); font-size: 1.1em; }
         .item-qty { font-size: 0.9em; font-weight: bold; color: #555; margin-top: 2px; }
         .btn-del { color: #888; border: 1px solid #ccc; background: white; padding: 6px 10px; border-radius: 4px; font-size: 0.75em; width: auto; }
-
-        .success-box { text-align: center; padding: 40px 10px; }
-        .success-icon { font-size: 60px; color: var(--success-green); margin-bottom: 20px; }
-        .success-msg { font-size: 1.1em; line-height: 1.6; color: #444; }
-        .success-email { font-weight: bold; color: var(--xerox-red); display: block; margin: 15px 0; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Retour de pièces neuves V1.1</h1>
+    <h1>Retour de pièces neuves V1.2</h1>
     <header id="headerTitle">1. Informations Expédition</header>
 
     <div id="step1" class="section active">
         <div class="form-group"><label>BoxID</label><input type="text" id="boxId" placeholder="Ex: 123456"></div>
-        <div class="form-group"><label>Emplacement</label><input type="text" id="location" placeholder="Ex: PD, locker..."></div>
+        <div class="form-group"><label>Emplacement</label><input type="text" id="location" placeholder="Ex: PD, locker ou # employé"></div>
         <div class="form-group"><label>Téléphone</label><input type="tel" id="phone" placeholder="418-xxx-xxxx"></div>
         <div class="form-group"><label># Employé</label><input type="text" id="empId" placeholder="Ex: 012345"></div>
-        <div class="form-group" style="border:none;"><label>Votre courriel</label><input type="email" id="userEmail" placeholder="nom@xerox.com"></div>
+        <div class="form-group" style="border:none;"><label>Votre courriel</label><input type="email" id="userEmail" placeholder="prénom.nom@xerox.com"></div>
         <button class="btn-main" onclick="saveAndGoToStep2()">Suivant</button>
     </div>
 
     <div id="step2" class="section">
-        <button id="btnToggleScan" class="btn-scan" onclick="startScanner()">📷 Activer la Caméra</button>
+        <button id="btnToggleScan" class="btn-scan" onclick="startScanner()">📷 Activer la Caméra Zoomée</button>
         <div id="reader"></div>
         <div id="scanStatus" class="status" style="display:none;"></div>
         
@@ -112,12 +107,9 @@
     </div>
 
     <div id="step3" class="section">
-        <div class="success-box">
-            <div class="success-icon">✔️</div>
-            <div class="success-msg">
-                Données prêtes à être envoyées à :
-                <span class="success-email">NewPartReturns@xerox.com</span>
-            </div>
+        <div style="text-align:center; padding: 40px 10px;">
+            <div style="font-size: 60px; color: var(--success-green);">✔️</div>
+            <p>Données prêtes à être envoyées.</p>
             <button class="btn-main" onclick="location.reload()">Nouveau formulaire</button>
         </div>
     </div>
@@ -128,7 +120,6 @@
     let html5QrCode = null;
     const xeroxRegex = /^\d{3}[a-zA-Z]\d{5}$/;
 
-    // RÉCUPÉRATION MÉMOIRE
     window.onload = function() {
         if (localStorage.getItem("savedPhone")) document.getElementById("phone").value = localStorage.getItem("savedPhone");
         if (localStorage.getItem("savedEmpId")) document.getElementById("empId").value = localStorage.getItem("savedEmpId");
@@ -156,34 +147,53 @@
         if (step !== 2) stopScanner();
     }
 
-    function startScanner() {
+    async function startScanner() {
         document.getElementById("reader").style.display = "block";
         document.getElementById("btnToggleScan").style.display = "none";
         
         html5QrCode = new Html5Qrcode("reader");
         
         const config = { 
-            fps: 10, 
-            qrbox: { width: 280, height: 120 }
+            fps: 15, 
+            qrbox: { width: 250, height: 120 }
         };
 
-        html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
-            // NETTOYAGE ÉTOILES ET ESPACES
-            let cleanCode = decodedText.trim().replace(/\*/g, "").toUpperCase();
-            const statusDiv = document.getElementById("scanStatus");
-            statusDiv.style.display = "block";
+        try {
+            await html5QrCode.start(
+                { facingMode: "environment" }, 
+                config, 
+                (decodedText) => {
+                    let cleanCode = decodedText.trim().replace(/\*/g, "").toUpperCase();
+                    const statusDiv = document.getElementById("scanStatus");
+                    statusDiv.style.display = "block";
 
-            if (xeroxRegex.test(cleanCode)) {
-                addPieceToInventory(cleanCode);
-                statusDiv.className = "status status-success";
-                statusDiv.innerText = "✅ Validé : " + cleanCode;
-                if (navigator.vibrate) navigator.vibrate(100);
-                stopScanner();
-            } else {
-                statusDiv.className = "status status-warning";
-                statusDiv.innerText = "⚠️ Format ignoré : " + cleanCode;
+                    if (xeroxRegex.test(cleanCode)) {
+                        addPieceToInventory(cleanCode);
+                        statusDiv.className = "status status-success";
+                        statusDiv.innerText = "✅ Validé : " + cleanCode;
+                        if (navigator.vibrate) navigator.vibrate(100);
+                        stopScanner();
+                    } else {
+                        statusDiv.className = "status status-warning";
+                        statusDiv.innerText = "⚠️ Format ignoré : " + cleanCode;
+                    }
+                }
+            );
+
+            // GESTION DU ZOOM NUMÉRIQUE
+            const videoTrack = html5QrCode.getVideoTrack();
+            if (videoTrack) {
+                const capabilities = videoTrack.getCapabilities();
+                if (capabilities.zoom) {
+                    await videoTrack.applyConstraints({
+                        advanced: [{ zoom: Math.min(2.5, capabilities.zoom.max) }]
+                    });
+                }
             }
-        }).catch(err => console.error(err));
+        } catch (err) {
+            console.error(err);
+            alert("Impossible d'activer la caméra.");
+        }
     }
 
     function stopScanner() {
@@ -197,21 +207,15 @@
 
     function addPieceToInventory(code) {
         const existing = inventory.find(i => i.code === code);
-        if (existing) {
-            existing.qty++;
-        } else {
-            inventory.push({ code: code, qty: 1 });
-        }
+        if (existing) { existing.qty++; } else { inventory.push({ code: code, qty: 1 }); }
         updateList();
     }
 
     function manualEntry() {
-        const code = prompt("Entrez le code pièce (ex: 120E35553) :");
+        const code = prompt("Code pièce :");
         if (code) {
             let clean = code.replace(/\*/g, "").toUpperCase();
-            if (xeroxRegex.test(clean)) {
-                addPieceToInventory(clean);
-            } else { alert("Format invalide"); }
+            if (xeroxRegex.test(clean)) { addPieceToInventory(clean); } else { alert("Format invalide"); }
         }
     }
 
