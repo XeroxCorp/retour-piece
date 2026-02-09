@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner Xerox - Confirmation</title>
+    <title>Scanner Xerox - V1.5 Zoom</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         :root { --xerox-red: #DA291C; --xerox-dark-red: #B01D15; --success-green: #28a745; }
@@ -46,7 +46,7 @@
 <body>
 
 <div class="container">
-    <h1>Formulaire de retour de pièces neuves V1.4</h1>
+    <h1>Formulaire de retour de pièces neuves V1.5</h1>
     <header id="headerTitle">1. Informations Expédition</header>
 
     <div id="step1" class="section active">
@@ -126,7 +126,8 @@
         }
     }
 
-    function startScanner() {
+    // --- MODIFICATION ICI : AJOUT DU ZOOM ---
+    async function startScanner() {
         const readerDiv = document.getElementById("reader");
         readerDiv.style.display = "block";
         document.getElementById("btnToggleScan").style.display = "none";
@@ -134,10 +135,25 @@
 
         const config = { fps: 20, qrbox: { width: 280, height: 150 }, aspectRatio: 1.0 };
         
-        html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
-            addOrUpdatePiece(decodedText);
-            stopScanner(); 
-        }).catch(err => console.error(err));
+        try {
+            await html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
+                addOrUpdatePiece(decodedText);
+                stopScanner(); 
+            });
+
+            // Tentative d'activation du zoom après le démarrage
+            const videoTrack = html5QrCode.getVideoTrack();
+            if (videoTrack) {
+                const capabilities = videoTrack.getCapabilities();
+                if (capabilities.zoom) {
+                    await videoTrack.applyConstraints({
+                        advanced: [{ zoom: Math.min(2.0, capabilities.zoom.max) }]
+                    });
+                }
+            }
+        } catch (err) {
+            console.error(err);
+        }
     }
 
     function stopScanner() {
@@ -146,10 +162,15 @@
         html5QrCode.stop().catch(() => {});
     }
 
+    // --- MODIFICATION ICI : NETTOYAGE DES ÉTOILES ---
     function addOrUpdatePiece(code) {
         const statusDiv = document.getElementById("scanStatus");
         statusDiv.style.display = "block";
-        const cleanCode = code.trim().toUpperCase();
+        statusDiv.style.background = "#d4edda";
+        statusDiv.style.color = "#155724";
+        
+        // Supprime les étoiles * si présentes
+        const cleanCode = code.trim().replace(/\*/g, "").toUpperCase();
 
         if (regex.test(cleanCode)) {
             const existingItem = inventory.find(item => item.code === cleanCode);
@@ -192,16 +213,11 @@
 
     function finalSubmit() {
         if (inventory.length === 0) { alert("Liste vide."); return; }
-        
-        // Ici se fera l'appel Power Automate plus tard
         console.log("Données envoyées :", inventory);
-        
-        // Transition vers la page de succès
         goToStep(3);
     }
 
     function resetForm() {
-        // On vide l'inventaire et le BoxID, mais on garde les infos employé
         inventory = [];
         document.getElementById("boxId").value = "";
         document.getElementById("location").value = "";
