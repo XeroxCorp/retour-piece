@@ -42,10 +42,16 @@
     <header id="headerTitle">1. Informations Expédition</header>
 
     <div id="step1" class="section active">
-        <div class="form-group"><label>BoxID</label><input type="text" id="boxId" placeholder="Ex: 123456"></div>
+        <div class="form-group">
+            <label>BoxID</label>
+            <input type="text" id="boxId" placeholder="Ex: 123456" maxlength="6" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+        </div>
         <div class="form-group"><label>Emplacement</label><input type="text" id="location" placeholder="Ex: PD, locker ou # employé"></div>
         <div class="form-group"><label>Téléphone</label><input type="tel" id="phone" placeholder="418-xxx-xxxx"></div>
-        <div class="form-group"><label># Employé</label><input type="text" id="empId" placeholder="Ex: 012345"></div>
+        <div class="form-group">
+            <label># Employé</label>
+            <input type="text" id="empId" placeholder="Ex: 012345" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+        </div>
         <div class="form-group" style="border:none;"><label>Votre courriel</label><input type="email" id="userEmail" placeholder="prénom.nom@xerox.com"></div>
         <button class="btn-main" onclick="saveAndGoToStep2()">Suivant</button>
     </div>
@@ -71,6 +77,8 @@
                 <br>
                 Une fois le courriel envoyé, les données iront vers :
                 <span class="success-email">NewPartReturns@xerox.com</span>
+                <br>
+                Vous recevrez une copie dans les 5 minutes.
             </div>
             <button class="btn-main" onclick="resetForm()" style="margin-top: 40px;">Nouveau formulaire</button>
         </div>
@@ -89,12 +97,32 @@
     };
 
     function saveAndGoToStep2() {
+        const boxId = document.getElementById("boxId").value.trim();
+        const empId = document.getElementById("empId").value.trim();
         const fields = ["boxId", "location", "phone", "empId", "userEmail"];
+        
+        // 1. Vérifier si les champs sont vides
         for(let id of fields) {
             if (!document.getElementById(id).value.trim()) {
                 alert("⚠️ Tous les champs sont requis."); return;
             }
         }
+
+        // 2. Vérification spécifique pour le BoxID (exactement 6 chiffres)
+        const boxIdRegex = /^\d{6}$/;
+        if (!boxIdRegex.test(boxId)) {
+            alert("⚠️ Le BoxID doit contenir exactement 6 chiffres (ex: 486153).");
+            return;
+        }
+
+        // 3. Vérification du # Employé (chiffres seulement, longueur libre)
+        const empIdRegex = /^\d+$/;
+        if (!empIdRegex.test(empId)) {
+            alert("⚠️ Le numéro d'employé doit contenir uniquement des chiffres.");
+            return;
+        }
+        
+        // Si tout est beau, on sauvegarde et on continue
         localStorage.setItem("savedPhone", document.getElementById("phone").value);
         localStorage.setItem("savedEmpId", document.getElementById("empId").value);
         localStorage.setItem("savedEmail", document.getElementById("userEmail").value);
@@ -194,7 +222,7 @@
         emailBody += "FIN_DONNEES";
 
         const subject = "DATA_SCAN_XEROX";
-        const recipient = "Power.Automate.Flow.Bot@xerox.com"; // Remplacer par ton adresse pour le test
+        const recipient = "Power.Automate.Flow.Bot@xerox.com";
 
         // Création du lien mailto
         const mailtoUrl = "mailto:" + recipient + 
@@ -220,5 +248,6 @@
 </script>
 </body>
 </html>
+
 
 
