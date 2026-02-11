@@ -99,6 +99,7 @@
     function saveAndGoToStep2() {
         const boxId = document.getElementById("boxId").value.trim();
         const empId = document.getElementById("empId").value.trim();
+        const userEmail = document.getElementById("userEmail").value.trim();
         const fields = ["boxId", "location", "phone", "empId", "userEmail"];
         
         // 1. Vérifier si les champs sont vides
@@ -119,6 +120,13 @@
         const empIdRegex = /^\d+$/;
         if (!empIdRegex.test(empId)) {
             alert("⚠️ Le numéro d'employé doit contenir uniquement des chiffres.");
+            return;
+        }
+
+        // 4. Vérification du format du courriel ---
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(userEmail)) {
+            alert("⚠️ Veuillez entrer une adresse courriel valide (ex: prénom.nom@xerox.com).");
             return;
         }
         
@@ -248,6 +256,7 @@
 </script>
 </body>
 </html>
+
 
 
 
