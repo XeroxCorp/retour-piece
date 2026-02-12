@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner Xerox - V2.1 Gold</title>
+    <title>Scanner Xerox - V2.1 Gold Multilingue</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -11,7 +11,6 @@
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background: #f4f4f4; color: #333; }
         .container { max-width: 500px; margin: 10px auto; background: white; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); overflow: hidden; min-height: 95vh; display: flex; flex-direction: column; position: relative; }
         
-        /* Menu Langue */
         .lang-selector { position: absolute; top: 15px; right: 10px; z-index: 10; }
         .lang-selector select { padding: 5px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.8em; cursor: pointer; background: white; }
 
@@ -62,13 +61,22 @@
             <label id="lbl-boxid">BoxID</label>
             <input type="text" id="boxId" placeholder="Ex: 123456" maxlength="6" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
         </div>
-        <div class="form-group"><label id="lbl-loc">Emplacement</label><input type="text" id="location" placeholder="Ex: PD, locker..."></div>
-        <div class="form-group"><label id="lbl-tel">Téléphone</label><input type="tel" id="phone" placeholder="418-xxx-xxxx"></div>
+        <div class="form-group">
+            <label id="lbl-loc">Emplacement</label>
+            <input type="text" id="location" placeholder="Ex: PD, locker...">
+        </div>
+        <div class="form-group">
+            <label id="lbl-tel">Téléphone</label>
+            <input type="tel" id="phone" placeholder="418-xxx-xxxx">
+        </div>
         <div class="form-group">
             <label id="lbl-empid"># Employé</label>
             <input type="text" id="empId" placeholder="Ex: 012345" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
         </div>
-        <div class="form-group" style="border:none;"><label id="lbl-email">Votre courriel</label><input type="email" id="userEmail" placeholder="prénom.nom@xerox.com"></div>
+        <div class="form-group" style="border:none;">
+            <label id="lbl-email">Votre courriel</label>
+            <input type="email" id="userEmail" placeholder="prénom.nom@xerox.com">
+        </div>
         <button class="btn-main" id="btn-next" onclick="saveAndGoToStep2()">Suivant</button>
     </div>
 
@@ -94,14 +102,12 @@
     <div id="step3" class="section">
         <div class="success-box">
             <div class="success-icon" style="font-size:50px; color:var(--success-green);">✔️</div>
-            <p id="txt-success-msg">Données prêtes.
-                <br><br>
-                Le destinataire est :
-                <br>
-                <b>NewPartReturns@xerox.com</b>
-                <br>
+            <p id="txt-success-msg">
+                Données prêtes.<br><br>
+                Le destinataire est :<br>
+                <b>NewPartReturns@xerox.com</b><br>
                 Vous recevrez un courriel de confirmation d'ici 5 min.
-                <br><br></p>
+            </p>
             <button class="btn-main" id="btn-new-form" onclick="resetForm()">Nouveau formulaire</button>
         </div>
     </div>
@@ -114,12 +120,13 @@
     const translations = {
         fr: {
             mainTitle: 'Formulaire <br>"Retour de pièces neuves"',
-            headerTitle: ["", "1. Expédition", "2. Scan", "Envoi"],
+            headerTitle: ["", "1. Informations Expédition", "2. Scan des pièces", "Envoi"],
             lblBoxId: "BoxID",
             lblLoc: "Emplacement",
             lblTel: "Téléphone",
             lblEmpId: "# Employé",
             lblEmail: "Votre courriel",
+            placeholderEmail: "prénom.nom@xerox.com",
             btnNext: "Suivant",
             btnTakePhoto: " Prendre Photo du codebar",
             scanTip: " Zoomez sur le code pour qu'il soit seul à l'écran",
@@ -128,7 +135,7 @@
             btnSend: "Terminer et Envoyer",
             btnBack: "← Retour",
             btnNewForm: "Nouveau formulaire",
-            successMsg: `Données prêtes.<br><br>Le destinataire est :<br><b>NewPartReturns@xerox.com</b><br>Vous recevrez un courriel de confirmation d'ici 5 min.<br><br>`,
+            successMsg: `Données prêtes.<br><br>Le destinataire est :<br><b>NewPartReturns@xerox.com</b><br>Vous recevrez un courriel de confirmation d'ici 5 min.`,
             statusAnalyzing: "Analyse...",
             statusError: "❌ Code illisible. Zoomez plus.",
             statusAdded: " ajouté",
@@ -143,12 +150,13 @@
         },
         en: {
             mainTitle: 'Form <br>"New Parts Return"',
-            headerTitle: ["", "1. Shipping", "2. Scan", "Sending"],
+            headerTitle: ["", "1. Shipping Information", "2. Parts Scanning", "Sent"],
             lblBoxId: "BoxID",
             lblLoc: "Location",
             lblTel: "Phone",
             lblEmpId: "Employee #",
             lblEmail: "Your Email",
+            placeholderEmail: "name.lastname@xerox.com",
             btnNext: "Next",
             btnTakePhoto: " Take Barcode Photo",
             scanTip: " Zoom in so the code fills the screen",
@@ -157,7 +165,7 @@
             btnSend: "Finish and Send",
             btnBack: "← Back",
             btnNewForm: "New Form",
-            successMsg: `Data ready.<br><br>Recipient is:<br><b>NewPartReturns@xerox.com</b><br>You will receive a confirmation email within 5 min.<br><br>`,
+            successMsg: `Data ready.<br><br>Recipient is:<br><b>NewPartReturns@xerox.com</b><br>You will receive a confirmation email within 5 min.`,
             statusAnalyzing: "Analyzing...",
             statusError: "❌ Unreadable code. Zoom more.",
             statusAdded: " added",
@@ -177,12 +185,18 @@
         localStorage.setItem("appLang", lang);
         const t = translations[lang];
 
+        // Titres et Labels
         document.getElementById("txt-main-title").innerHTML = t.mainTitle;
         document.getElementById("lbl-boxid").innerText = t.lblBoxId;
         document.getElementById("lbl-loc").innerText = t.lblLoc;
         document.getElementById("lbl-tel").innerText = t.lblTel;
         document.getElementById("lbl-empid").innerText = t.lblEmpId;
         document.getElementById("lbl-email").innerText = t.lblEmail;
+        
+        // Placeholders
+        document.getElementById("userEmail").placeholder = t.placeholderEmail;
+
+        // Boutons et Tips
         document.getElementById("btn-next").innerText = t.btnNext;
         document.getElementById("btn-take-photo").innerHTML = `<i class="fas fa-camera"></i>${t.btnTakePhoto}`;
         document.getElementById("txt-scan-tip").innerHTML = `<i class="fas fa-search-plus"></i>${t.scanTip}`;
@@ -190,6 +204,8 @@
         document.getElementById("txt-scanned-items").innerText = t.scannedItems;
         document.getElementById("btn-send").innerText = t.btnSend;
         document.getElementById("btn-back").innerText = t.btnBack;
+        
+        // Page 3 (Succès)
         document.getElementById("txt-success-msg").innerHTML = t.successMsg;
         document.getElementById("btn-new-form").innerText = t.btnNewForm;
 
@@ -203,6 +219,7 @@
         document.getElementById('headerTitle').innerText = translations[currentLang].headerTitle[step];
     }
 
+    // --- SONS ET VIBRATION (Inchangé) ---
     function playSuccessSound() {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = ctx.createOscillator();
@@ -293,7 +310,7 @@
     function updateList() {
         const listDiv = document.getElementById("itemList");
         const t = translations[currentLang];
-        listDiv.innerHTML = `<h3 style="font-size: 1em; color: #666;">${t.scannedItems} (<span id="totalItems">${inventory.length}</span>)</h3>`;
+        listDiv.innerHTML = `<h3 style="font-size: 1em; color: #666;"><span id="txt-scanned-items-count">${t.scannedItems}</span> (<span id="totalItems">${inventory.length}</span>)</h3>`;
         inventory.forEach((item, index) => {
             const row = document.createElement("div"); row.className = "item";
             row.innerHTML = `<div class="item-info"><span class="item-code">${item.code}</span><span class="item-qty">QTY ${item.qty}</span></div>
