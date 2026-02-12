@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner Xerox - V2.0</title>
+    <title>Scanner Xerox - V2.1 Gold</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -22,8 +22,8 @@
         .btn-scan { background: #444; color: white; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-manual { background: var(--success-green); color: white; margin-top: 10px; }
         .btn-secondary { background: none; color: #666; text-decoration: underline; margin-top: 15px; font-size: 0.9em; }
+        .scan-tip { font-size: 0.8em; color: #666; text-align: center; margin-top: 5px; font-style: italic; }
         
-        /* Styles pour la liste et les icônes */
         .item-list { margin-top: 25px; border-top: 2px solid var(--xerox-red); background: #fdfdfd; padding: 10px; }
         .item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; align-items: center; background: white; margin-bottom: 5px; border-radius: 4px; }
         .item-info { display: flex; flex-direction: column; }
@@ -31,23 +31,18 @@
         .item-qty { font-size: 0.9em; font-weight: bold; color: #555; margin-top: 2px; }
         
         .item-actions { display: flex; gap: 8px; }
-        .btn-icon { 
-            background: white; border: 1px solid #ddd; padding: 8px; 
-            border-radius: 6px; cursor: pointer; font-size: 1em; width: 38px; height: 38px;
-            display: flex; align-items: center; justify-content: center; transition: 0.2s;
-        }
+        .btn-icon { background: white; border: 1px solid #ddd; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 1em; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; }
         .btn-edit { color: #007bff; border-color: #007bff; }
         .btn-del { color: var(--xerox-red); border-color: var(--xerox-red); }
 
         .status { padding: 12px; border-radius: 6px; margin-top: 15px; text-align: center; font-weight: bold; }
         .success-box { text-align: center; padding: 40px 20px; }
-        .success-icon { font-size: 50px; color: var(--success-green); margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Formulaire "Retour de pièces neuves"</h1>
+    <h1>Formulaire "Retour de pièces"</h1>
     <header id="headerTitle">1. Informations Expédition</header>
 
     <div id="step1" class="section active">
@@ -55,7 +50,7 @@
             <label>BoxID</label>
             <input type="text" id="boxId" placeholder="Ex: 123456" maxlength="6" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
         </div>
-        <div class="form-group"><label>Emplacement</label><input type="text" id="location" placeholder="Ex: PD, locker ou # employé"></div>
+        <div class="form-group"><label>Emplacement</label><input type="text" id="location" placeholder="Ex: PD, locker..."></div>
         <div class="form-group"><label>Téléphone</label><input type="tel" id="phone" placeholder="418-xxx-xxxx"></div>
         <div class="form-group">
             <label># Employé</label>
@@ -68,14 +63,16 @@
     <div id="step2" class="section">
         <input type="file" accept="image/*" capture="environment" id="fileInput" style="display:none;" onchange="scanFile(this)">
         <button class="btn-scan" onclick="document.getElementById('fileInput').click()">
-            <i class="fas fa-camera"></i> Prendre une Photo du Code-barre
+            <i class="fas fa-camera"></i> Prendre Photo
         </button>
+        <p class="scan-tip"><i class="fas fa-search-plus"></i> Zoomez sur le code pour qu'il soit seul à l'écran</p>
+        
         <div id="reader" style="display:none;"></div>
         <div id="scanStatus" class="status" style="display:none;"></div>
         <button class="btn-manual" onclick="manualEntry()">Saisie Manuelle</button>
         
         <div class="item-list" id="itemList">
-            <h3 style="font-size: 1em; color: #666;">Liste des pièces (<span id="totalItems">0</span>)</h3>
+            <h3 style="font-size: 1em; color: #666;">Pièces scannées (<span id="totalItems">0</span>)</h3>
         </div>
         
         <button class="btn-main" onclick="finalSubmit()">Terminer et Envoyer</button>
@@ -84,13 +81,9 @@
 
     <div id="step3" class="section">
         <div class="success-box">
-            <div class="success-icon">✔️</div>
-            <div class="success-msg">
-                Vos données ont été préparées pour l'envoi.<br>
-                Une fois le courriel envoyé, les données iront vers :<br>
-                <b style="color:var(--xerox-red)">NewPartReturns@xerox.com</b>
-            </div>
-            <button class="btn-main" onclick="resetForm()" style="margin-top: 40px;">Nouveau formulaire</button>
+            <div class="success-icon" style="font-size:50px; color:var(--success-green);">✔️</div>
+            <p>Données prêtes.<br>Le destinataire est :<br><b>NewPartReturns@xerox.com</b></p>
+            <button class="btn-main" onclick="resetForm()">Nouveau formulaire</button>
         </div>
     </div>
 </div>
@@ -98,53 +91,44 @@
 <script>
     let inventory = [];
     const html5QrCode = new Html5Qrcode("reader");
-    const pieceRegex = /^\d{3}[a-zA-Z]\d{5}$/;
+    const pieceRegex = /^\d{3}[a-zA-Z]\d{5}$/; // Format Xerox: 001N01234
 
     window.onload = function() {
-        if (localStorage.getItem("savedPhone")) document.getElementById("phone").value = localStorage.getItem("savedPhone");
-        if (localStorage.getItem("savedEmpId")) document.getElementById("empId").value = localStorage.getItem("savedEmpId");
-        if (localStorage.getItem("savedEmail")) document.getElementById("userEmail").value = localStorage.getItem("savedEmail");
+        ["phone", "empId", "userEmail"].forEach(id => {
+            if(localStorage.getItem("saved"+id)) document.getElementById(id).value = localStorage.getItem("saved"+id);
+        });
     };
 
     function saveAndGoToStep2() {
         const boxId = document.getElementById("boxId").value.trim();
         const empId = document.getElementById("empId").value.trim();
-        const userEmail = document.getElementById("userEmail").value.trim();
-        const fields = ["boxId", "location", "phone", "empId", "userEmail"];
+        const email = document.getElementById("userEmail").value.trim();
         
-        for(let id of fields) {
-            if (!document.getElementById(id).value.trim()) { alert("⚠️ Tous les champs sont requis."); return; }
-        }
+        if (!boxId || !empId || !email) { alert("Champs manquants"); return; }
+        if (!/^\d{6}$/.test(boxId)) { alert("BoxID: 6 chiffres requis"); return; }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert("Courriel invalide"); return; }
 
-        if (!/^\d{6}$/.test(boxId)) { alert("⚠️ Le BoxID doit contenir 6 chiffres."); return; }
-        if (!/^\d+$/.test(empId)) { alert("⚠️ Le numéro d'employé doit contenir uniquement des chiffres."); return; }
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail)) { alert("⚠️ Courriel invalide."); return; }
-
-        localStorage.setItem("savedPhone", document.getElementById("phone").value);
-        localStorage.setItem("savedEmpId", document.getElementById("empId").value);
-        localStorage.setItem("savedEmail", document.getElementById("userEmail").value);
+        localStorage.setItem("savedphone", document.getElementById("phone").value);
+        localStorage.setItem("savedempId", empId);
+        localStorage.setItem("saveduserEmail", email);
         goToStep(2);
     }
 
     function goToStep(step) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.getElementById('step' + step).classList.add('active');
-        const titles = ["", "1. Informations Expédition", "2. Scan des pièces", "Envoi en cours"];
-        document.getElementById('headerTitle').innerText = titles[step];
+        document.getElementById('headerTitle').innerText = ["", "1. Expédition", "2. Scan", "Envoi"][step];
     }
 
     function scanFile(input) {
         if (!input.files?.length) return;
         const statusDiv = document.getElementById("scanStatus");
-        statusDiv.style.display = "block";
-        statusDiv.style.background = "#fff3cd"; statusDiv.style.color = "#856404";
-        statusDiv.innerText = "Analyse de la photo...";
+        statusDiv.style.display = "block"; statusDiv.style.background = "#fff3cd"; statusDiv.innerText = "Analyse...";
         
         html5QrCode.scanFile(input.files[0], true)
             .then(decodedText => { addOrUpdatePiece(decodedText); input.value = ""; })
             .catch(err => {
-                statusDiv.style.background = "#f8d7da"; statusDiv.style.color = "#721c24";
-                statusDiv.innerText = "❌ Code illisible. Recommencez.";
+                statusDiv.style.background = "#f8d7da"; statusDiv.innerText = "❌ Code illisible. Zoomez plus.";
                 input.value = "";
             });
     }
@@ -152,35 +136,22 @@
     function addOrUpdatePiece(code) {
         const cleanCode = code.trim().replace(/\*/g, "").toUpperCase();
         const statusDiv = document.getElementById("scanStatus");
-        statusDiv.style.display = "block";
-
         if (pieceRegex.test(cleanCode)) {
-            const existingItem = inventory.find(item => item.code === cleanCode);
-            if (existingItem) { existingItem.qty += 1; } 
-            else { inventory.push({ code: cleanCode, qty: 1 }); }
-            
-            statusDiv.style.background = "#d4edda"; statusDiv.style.color = "#155724";
-            statusDiv.innerText = "✅ " + cleanCode + " ajouté.";
+            const item = inventory.find(i => i.code === cleanCode);
+            if (item) item.qty += 1; else inventory.push({ code: cleanCode, qty: 1 });
+            statusDiv.style.background = "#d4edda"; statusDiv.innerText = "✅ " + cleanCode + " ajouté";
             updateList();
-            if (navigator.vibrate) navigator.vibrate(100);
         } else {
-            statusDiv.style.background = "#f8d7da"; statusDiv.style.color = "#721c24";
-            statusDiv.innerText = "❌ Format invalide : " + cleanCode;
+            statusDiv.style.background = "#f8d7da"; statusDiv.innerText = "❌ Format Xerox non détecté";
         }
     }
 
     function updateList() {
         const listDiv = document.getElementById("itemList");
-        listDiv.innerHTML = `<h3 style="font-size: 1em; color: #666;">Liste des pièces (<span id="totalItems">${inventory.length}</span>)</h3>`;
-        
+        listDiv.innerHTML = `<h3 style="font-size: 1em; color: #666;">Pièces scannées (<span id="totalItems">${inventory.length}</span>)</h3>`;
         inventory.forEach((item, index) => {
-            const row = document.createElement("div");
-            row.className = "item";
-            row.innerHTML = `
-                <div class="item-info">
-                    <span class="item-code">${item.code}</span>
-                    <span class="item-qty">QTY ${item.qty}</span>
-                </div>
+            const row = document.createElement("div"); row.className = "item";
+            row.innerHTML = `<div class="item-info"><span class="item-code">${item.code}</span><span class="item-qty">QTY ${item.qty}</span></div>
                 <div class="item-actions">
                     <button class="btn-icon btn-edit" onclick="editQuantity(${index})"><i class="fas fa-pencil-alt"></i></button>
                     <button class="btn-icon btn-del" onclick="removePiece(${index})"><i class="fas fa-trash-alt"></i></button>
@@ -189,52 +160,26 @@
         });
     }
 
-    function editQuantity(index) {
-        const newQty = prompt("Modifier la quantité :", inventory[index].qty);
-        if (newQty && !isNaN(newQty) && newQty > 0) {
-            inventory[index].qty = parseInt(newQty);
-            updateList();
-        }
+    function editQuantity(i) {
+        const n = prompt("Quantité :", inventory[i].qty);
+        if (n && !isNaN(n) && n > 0) { inventory[i].qty = parseInt(n); updateList(); }
     }
 
-    function removePiece(index) {
-        if(confirm("Supprimer cette pièce ?")) {
-            inventory.splice(index, 1);
-            updateList();
-        }
-    }
+    function removePiece(i) { if(confirm("Supprimer ?")) { inventory.splice(i, 1); updateList(); } }
 
-    function manualEntry() {
-        const code = prompt("Entrez le code pièce :");
-        if (code) addOrUpdatePiece(code);
-    }
+    function manualEntry() { const c = prompt("Code pièce :"); if (c) addOrUpdatePiece(c); }
 
     function finalSubmit() {
-        if (!inventory.length) { alert("Liste vide."); return; }
-
-        let emailBody = "DEBUT_DONNEES\n";
-        emailBody += "BOXID:" + document.getElementById("boxId").value + "\n";
-        emailBody += "LOC:" + document.getElementById("location").value + "\n";
-        emailBody += "TEL:" + document.getElementById("phone").value + "\n";
-        emailBody += "EMPID:" + document.getElementById("empId").value + "\n";
-        emailBody += "EMAIL:" + document.getElementById("userEmail").value + "\n";
-        emailBody += "---PIECES---\n";
-        inventory.forEach(item => { emailBody += "ITEM:" + item.code + "|QTY:" + item.qty + "\n"; });
-        emailBody += "FIN_DONNEES";
-
-        const mailtoUrl = "mailto:Power.Automate.Flow.Bot@xerox.com?subject=DATA_SCAN_XEROX&body=" + encodeURIComponent(emailBody);
-        window.location.href = mailtoUrl;
-        setTimeout(() => goToStep(3), 1500);
+        if (!inventory.length) return;
+        let body = "DEBUT_DONNEES\nBOXID:" + document.getElementById("boxId").value + "\nLOC:" + document.getElementById("location").value + 
+                   "\nTEL:" + document.getElementById("phone").value + "\nEMPID:" + document.getElementById("empId").value + 
+                   "\nEMAIL:" + document.getElementById("userEmail").value + "\n---PIECES---\n";
+        inventory.forEach(i => body += "ITEM:" + i.code + "|QTY:" + i.qty + "\n");
+        window.location.href = "mailto:Power.Automate.Flow.Bot@xerox.com?subject=DATA_SCAN_XEROX&body=" + encodeURIComponent(body + "FIN_DONNEES");
+        setTimeout(() => goToStep(3), 1000);
     }
 
-    function resetForm() {
-        inventory = [];
-        document.getElementById("boxId").value = "";
-        document.getElementById("location").value = "";
-        document.getElementById("scanStatus").style.display = "none";
-        updateList();
-        goToStep(1);
-    }
+    function resetForm() { inventory = []; updateList(); goToStep(1); }
 </script>
 </body>
 </html>
