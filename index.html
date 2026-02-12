@@ -205,8 +205,19 @@
     }
 
     function editQuantity(i) {
-        const n = prompt("Quantité :", inventory[i].qty);
-        if (n && !isNaN(n) && n > 0) { inventory[i].qty = parseInt(n); updateList(); }
+        const currentQty = inventory[i].qty;
+        // Le prompt affichera le clavier par défaut, mais nous forçons la validation numérique
+        const n = prompt("Modifier la quantité pour " + inventory[i].code + " :", currentQty);
+        
+        if (n !== null) { // Si l'utilisateur n'a pas cliqué sur "Annuler"
+            const newQty = parseInt(n.replace(/\D/g, '')); // On retire tout ce qui n'est pas un chiffre
+            if (!isNaN(newQty) && newQty > 0) {
+                inventory[i].qty = newQty;
+                updateList();
+            } else if (newQty === 0) {
+                removePiece(i); // Optionnel : supprimer si la quantité est mise à 0
+            }
+        }
     }
 
     function removePiece(i) { if(confirm("Supprimer ?")) { inventory.splice(i, 1); updateList(); } }
@@ -243,6 +254,7 @@
     
 </body>
 </html>
+
 
 
 
