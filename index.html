@@ -83,13 +83,13 @@
         <div class="success-box">
             <div class="success-icon" style="font-size:50px; color:var(--success-green);">✔️</div>
             <p>Données prêtes.
-                <br>
+                <br><br>
                 Le destinataire est :
                 <br>
-                <b>NewPartReturns@xerox.com</b></p>
+                <b>NewPartReturns@xerox.com</b>
                 <br>
                 Vous recevrez un courriel de confirmation d'ici 5 min.
-                <br><br>
+                <br><br></p>
             <button class="btn-main" onclick="resetForm()">Nouveau formulaire</button>
         </div>
     </div>
@@ -97,6 +97,8 @@
 
 <script>
     let inventory = [];
+    const soundSuccess = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+    const soundError = new Audio('https://assets.mixkit.co/active_storage/sfx/2873/2873-preview.mp3');
     const html5QrCode = new Html5Qrcode("reader");
     const pieceRegex = /^\d{3}[a-zA-Z]\d{5}$/; // Format Xerox: 001N01234
 
@@ -146,9 +148,17 @@
         if (pieceRegex.test(cleanCode)) {
             const item = inventory.find(i => i.code === cleanCode);
             if (item) item.qty += 1; else inventory.push({ code: cleanCode, qty: 1 });
+            
+            // --- SON DE RÉUSSITE ---
+            soundSuccess.play();
+            
             statusDiv.style.background = "#d4edda"; statusDiv.innerText = "✅ " + cleanCode + " ajouté";
             updateList();
+            if (navigator.vibrate) navigator.vibrate(100); 
         } else {
+            // --- SON D'ÉCHEC ---
+            soundError.play(); // <--- AJOUTE CETTE LIGNE ICI
+            
             statusDiv.style.background = "#f8d7da"; statusDiv.innerText = "❌ Format Xerox non détecté";
         }
     }
@@ -186,9 +196,24 @@
         setTimeout(() => goToStep(3), 1000);
     }
 
-    function resetForm() { inventory = []; updateList(); goToStep(1); }
+    function resetForm() { 
+        // 1. Vider les données scannées
+        inventory = []; 
+        updateList(); 
+        
+        // 2. Vider les champs spécifiques au colis
+        document.getElementById("boxId").value = "";
+        document.getElementById("location").value = "";
+        
+        // 3. Masquer le statut de scan précédent
+        document.getElementById("scanStatus").style.display = "none";
+        
+        // 4. Retour au début
+        goToStep(1); 
+    }
 </script>
 </body>
 </html>
+
 
 
