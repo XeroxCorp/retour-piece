@@ -42,7 +42,7 @@
 <body>
 
 <div class="container">
-    <h1>Formulaire "Retour de pièces"</h1>
+    <h1>Formulaire "Retour de pièces neuves"</h1>
     <header id="headerTitle">1. Informations Expédition</header>
 
     <div id="step1" class="section active">
@@ -63,7 +63,7 @@
     <div id="step2" class="section">
         <input type="file" accept="image/*" capture="environment" id="fileInput" style="display:none;" onchange="scanFile(this)">
         <button class="btn-scan" onclick="document.getElementById('fileInput').click()">
-            <i class="fas fa-camera"></i> Prendre Photo
+            <i class="fas fa-camera"></i> Prendre Photo du codebar
         </button>
         <p class="scan-tip"><i class="fas fa-search-plus"></i> Zoomez sur le code pour qu'il soit seul à l'écran</p>
         
@@ -82,7 +82,13 @@
     <div id="step3" class="section">
         <div class="success-box">
             <div class="success-icon" style="font-size:50px; color:var(--success-green);">✔️</div>
-            <p>Données prêtes.<br>Le destinataire est :<br><b>NewPartReturns@xerox.com</b></p>
+            <p>Données prêtes.
+                <br>
+                Le destinataire est :
+                <br>
+                <b>NewPartReturns@xerox.com</b></p>
+                <br>
+                Vous recevrez un courriel de confirmation d'ici 5 min.
             <button class="btn-main" onclick="resetForm()">Nouveau formulaire</button>
         </div>
     </div>
@@ -183,3 +189,4 @@
 </script>
 </body>
 </html>
+
