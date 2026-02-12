@@ -205,17 +205,27 @@
     }
 
     function editQuantity(i) {
-        const currentQty = inventory[i].qty;
-        // Le prompt affichera le clavier par défaut, mais nous forçons la validation numérique
-        const n = prompt("Modifier la quantité pour " + inventory[i].code + " :", currentQty);
+        let valid = false;
+        const currentCode = inventory[i].code;
         
-        if (n !== null) { // Si l'utilisateur n'a pas cliqué sur "Annuler"
-            const newQty = parseInt(n.replace(/\D/g, '')); // On retire tout ce qui n'est pas un chiffre
-            if (!isNaN(newQty) && newQty > 0) {
+        while (!valid) {
+            const n = prompt("Modifier la quantité pour " + currentCode + " :", inventory[i].qty);
+            
+            // Si l'utilisateur clique sur "Annuler", on sort de la boucle sans rien changer
+            if (n === null) break; 
+
+            // On nettoie l'entrée (on garde seulement les chiffres)
+            const cleanN = n.trim();
+            const newQty = parseInt(cleanN);
+
+            // Vérification : est-ce un nombre, est-ce entier, et est-ce au moins 1 ?
+            if (!isNaN(newQty) && newQty > 0 && /^\d+$/.test(cleanN)) {
                 inventory[i].qty = newQty;
                 updateList();
-            } else if (newQty === 0) {
-                removePiece(i); // Optionnel : supprimer si la quantité est mise à 0
+                valid = true; // On sort de la boucle
+            } else {
+                alert("⚠️ Erreur : Veuillez entrer un nombre entier valide (ex: 1, 2, 5).");
+                // La boucle recommence et réaffiche le prompt
             }
         }
     }
@@ -254,6 +264,7 @@
     
 </body>
 </html>
+
 
 
 
