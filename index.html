@@ -94,44 +94,53 @@
         </div>
     </div>
 </div>
-
 <script>
     let inventory = [];
-
-    // Fonction pour générer un "Bing" aigu (Succès)
-    function playSuccessSound() {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(880, ctx.currentTime); // Note A5 (aigu)
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.5);
-    }
-
-    // Fonction pour générer un "Bong" grave (Échec)
-    function playErrorSound() {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = "sawtooth"; // Son plus rugueux pour l'erreur
-        osc.frequency.setValueAtTime(150, ctx.currentTime); // Basse fréquence
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.3);
-    }
-    
     const html5QrCode = new Html5Qrcode("reader");
-    const pieceRegex = /^\d{3}[a-zA-Z]\d{5}$/; // Format Xerox: 001N01234
+    const pieceRegex = /^\d{3}[a-zA-Z]\d{5}$/;
+
+    // INITIALISATION AUDIO
+    let audioCtx = null;
+
+    function initAudioAndNext() {
+        // Crée ou reprend le contexte audio
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        } else if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        saveAndGoToStep2();
+    }
+
+    function playBeep(freq, duration) {
+        if (!audioCtx) return;
+        
+        // Relance le contexte s'il s'est endormi (courant sur mobile)
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        
+        osc.type = "sine"; // Type d'onde le plus compatible partout
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        
+        gain.gain.setValueAtTime(0, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.01); // Montée rapide
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    }
 
     window.onload = function() {
         ["phone", "empId", "userEmail"].forEach(id => {
-            if(localStorage.getItem("saved"+id)) document.getElementById(id).value = localStorage.getItem("saved"+id);
+            const val = localStorage.getItem("saved"+id);
+            if(val) document.getElementById(id).value = val;
         });
     };
 
@@ -139,11 +148,8 @@
         const boxId = document.getElementById("boxId").value.trim();
         const empId = document.getElementById("empId").value.trim();
         const email = document.getElementById("userEmail").value.trim();
-        
         if (!boxId || !empId || !email) { alert("Champs manquants"); return; }
         if (!/^\d{6}$/.test(boxId)) { alert("BoxID: 6 chiffres requis"); return; }
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert("Courriel invalide"); return; }
-
         localStorage.setItem("savedphone", document.getElementById("phone").value);
         localStorage.setItem("savedempId", empId);
         localStorage.setItem("saveduserEmail", email);
@@ -162,9 +168,15 @@
         statusDiv.style.display = "block"; statusDiv.style.background = "#fff3cd"; statusDiv.innerText = "Analyse...";
         
         html5QrCode.scanFile(input.files[0], true)
-            .then(decodedText => { addOrUpdatePiece(decodedText); input.value = ""; })
+            .then(decodedText => { 
+                addOrUpdatePiece(decodedText); 
+                input.value = ""; 
+            })
             .catch(err => {
-                statusDiv.style.background = "#f8d7da"; statusDiv.innerText = "❌ Code illisible. Zoomez plus.";
+                // ERREUR : Le scanner n'a rien trouvé du tout sur la photo
+                playBeep(200, 0.6); // Bong grave
+                statusDiv.style.background = "#f8d7da"; 
+                statusDiv.innerText = "❌ Code illisible. Zoomez plus.";
                 input.value = "";
             });
     }
@@ -172,20 +184,19 @@
     function addOrUpdatePiece(code) {
         const cleanCode = code.trim().replace(/\*/g, "").toUpperCase();
         const statusDiv = document.getElementById("scanStatus");
+        
         if (pieceRegex.test(cleanCode)) {
             const item = inventory.find(i => i.code === cleanCode);
             if (item) item.qty += 1; else inventory.push({ code: cleanCode, qty: 1 });
             
-            // --- NOUVEAU SON SUCCÈS ---
-            playSuccessSound();
+            playBeep(880, 0.3); // Bing aigu (Succès)
             
             statusDiv.style.background = "#d4edda"; statusDiv.innerText = "✅ " + cleanCode + " ajouté";
             updateList();
-            if (navigator.vibrate) navigator.vibrate(100); 
+            if (navigator.vibrate) navigator.vibrate(100);
         } else {
-            // --- NOUVEAU SON ÉCHEC ---
-            playErrorSound();
-            
+            // ERREUR : Code trouvé mais format non-Xerox
+            playBeep(200, 0.6); // Bong grave (Échec)
             statusDiv.style.background = "#f8d7da"; statusDiv.innerText = "❌ Format Xerox non détecté";
         }
     }
@@ -210,7 +221,6 @@
     }
 
     function removePiece(i) { if(confirm("Supprimer ?")) { inventory.splice(i, 1); updateList(); } }
-
     function manualEntry() { const c = prompt("Code pièce :"); if (c) addOrUpdatePiece(c); }
 
     function finalSubmit() {
@@ -224,23 +234,16 @@
     }
 
     function resetForm() { 
-        // 1. Vider les données scannées
-        inventory = []; 
-        updateList(); 
-        
-        // 2. Vider les champs spécifiques au colis
+        inventory = []; updateList(); 
         document.getElementById("boxId").value = "";
         document.getElementById("location").value = "";
-        
-        // 3. Masquer le statut de scan précédent
         document.getElementById("scanStatus").style.display = "none";
-        
-        // 4. Retour au début
         goToStep(1); 
     }
 </script>
 </body>
 </html>
+
 
 
 
