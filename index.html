@@ -236,11 +236,29 @@
 
     function finalSubmit() {
         if (!inventory.length) return;
-        let body = "DEBUT_DONNEES\nBOXID:" + document.getElementById("boxId").value + "\nLOC:" + document.getElementById("location").value + 
-                   "\nTEL:" + document.getElementById("phone").value + "\nEMPID:" + document.getElementById("empId").value + 
-                   "\nEMAIL:" + document.getElementById("userEmail").value + "\n---PIECES---\n";
+
+        // 1. Création d'un ID unique pour éviter les doublons dans Power Automate
+        const transactionID = Date.now(); 
+
+        let body = "ID_TRANSACTION:" + transactionID + "\n";
+        body += "DEBUT_DONNEES\nBOXID:" + document.getElementById("boxId").value + "\nLOC:" + document.getElementById("location").value + 
+                "\nTEL:" + document.getElementById("phone").value + "\nEMPID:" + document.getElementById("empId").value + 
+                "\nEMAIL:" + document.getElementById("userEmail").value + "\n---PIECES---\n";
+        
         inventory.forEach(i => body += "ITEM:" + i.code + "|QTY:" + i.qty + "\n");
-        window.location.href = "mailto:Power.Automate.Flow.Bot@xerox.com?subject=DATA_SCAN_XEROX&body=" + encodeURIComponent(body + "FIN_DONNEES");
+        
+        // 2. Préparation du lien mailto
+        const mailtoLink = "mailto:Power.Automate.Flow.Bot@xerox.com?subject=DATA_SCAN_XEROX_" + transactionID + "&body=" + encodeURIComponent(body + "FIN_DONNEES");
+
+        // 3. ON VIDE L'INVENTAIRE IMMÉDIATEMENT 
+        // Comme ça, si l'utilisateur revient sur la page, il n'y a plus rien à renvoyer.
+        inventory = []; 
+        updateList();
+
+        // 4. Envoi vers Outlook
+        window.location.href = mailtoLink;
+
+        // 5. Passage à l'écran de succès
         setTimeout(() => goToStep(3), 1000);
     }
 
@@ -264,6 +282,7 @@
     
 </body>
 </html>
+
 
 
 
