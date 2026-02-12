@@ -3,36 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner Xerox - Multilingual</title>
+    <title>Scanner Xerox - V2.1 Gold</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --xerox-red: #DA291C; --success-green: #28a745; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background: #f4f4f4; }
+        :root { --xerox-red: #DA291C; --xerox-dark-red: #B01D15; --success-green: #28a745; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background: #f4f4f4; color: #333; }
         .container { max-width: 500px; margin: 10px auto; background: white; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); overflow: hidden; min-height: 95vh; display: flex; flex-direction: column; position: relative; }
         
-        /* Menu Langue en haut à droite */
+        /* Menu Langue */
         .lang-selector { position: absolute; top: 15px; right: 10px; z-index: 10; }
-        .lang-selector select { padding: 5px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.8em; cursor: pointer; }
+        .lang-selector select { padding: 5px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.8em; cursor: pointer; background: white; }
 
-        h1 { font-size: 1.3em; margin: 0; color: var(--xerox-red); text-align: center; padding: 25px 50px 15px 15px; background: white; border-bottom: 1px solid #eee; }
-        header { background: var(--xerox-red); color: white; padding: 12px; font-weight: bold; }
+        h1 { font-size: 1.4em; margin: 0; color: var(--xerox-red); text-align: center; padding: 20px 45px 15px 15px; background: white; border-bottom: 1px solid #eee; }
+        header { background: var(--xerox-red); color: white; padding: 12px; text-align: left; padding-left: 20px; font-weight: bold; }
         .section { padding: 20px; display: none; flex-grow: 1; }
         .active { display: block; }
         .form-group { display: flex; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #f0f0f0; padding-bottom: 5px; }
         label { width: 110px; font-weight: bold; font-size: 0.85em; color: #666; }
-        input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 15px; }
-        button { width: 100%; border: none; padding: 15px; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 15px; background: #fafafa; }
+        button { width: 100%; border: none; padding: 15px; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .btn-main { background: var(--xerox-red); color: white; margin-top: 15px; }
         .btn-scan { background: #444; color: white; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-manual { background: var(--success-green); color: white; margin-top: 10px; }
-        .btn-secondary { background: none; color: #666; text-decoration: underline; margin-top: 15px; }
+        .btn-secondary { background: none; color: #666; text-decoration: underline; margin-top: 15px; font-size: 0.9em; }
+        .scan-tip { font-size: 0.8em; color: #666; text-align: center; margin-top: 5px; font-style: italic; }
+        
         .item-list { margin-top: 25px; border-top: 2px solid var(--xerox-red); background: #fdfdfd; padding: 10px; }
-        .item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; background: white; margin-bottom: 5px; border-radius: 4px; }
-        .item-code { font-family: 'Courier New', monospace; font-weight: bold; color: var(--xerox-red); }
+        .item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; align-items: center; background: white; margin-bottom: 5px; border-radius: 4px; }
+        .item-info { display: flex; flex-direction: column; }
+        .item-code { font-family: 'Courier New', monospace; font-weight: bold; color: var(--xerox-red); font-size: 1.1em; }
+        .item-qty { font-size: 0.9em; font-weight: bold; color: #555; margin-top: 2px; }
+        
         .item-actions { display: flex; gap: 8px; }
-        .btn-icon { background: white; border: 1px solid #ddd; padding: 8px; border-radius: 6px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; }
+        .btn-icon { background: white; border: 1px solid #ddd; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 1em; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; }
+        .btn-edit { color: #007bff; border-color: #007bff; }
+        .btn-del { color: var(--xerox-red); border-color: var(--xerox-red); }
+
         .status { padding: 12px; border-radius: 6px; margin-top: 15px; text-align: center; font-weight: bold; }
+        .success-box { text-align: center; padding: 40px 20px; }
     </style>
 </head>
 <body>
@@ -49,31 +58,50 @@
     <header id="headerTitle">1. Informations Expédition</header>
 
     <div id="step1" class="section active">
-        <div class="form-group"><label id="lbl-boxid">BoxID</label><input type="text" id="boxId" maxlength="6" inputmode="numeric"></div>
-        <div class="form-group"><label id="lbl-loc">Emplacement</label><input type="text" id="location" placeholder="PD, locker..."></div>
-        <div class="form-group"><label id="lbl-tel">Téléphone</label><input type="tel" id="phone" value="418-"></div>
-        <div class="form-group"><label id="lbl-empid"># Employé</label><input type="text" id="empId" inputmode="numeric"></div>
-        <div class="form-group" style="border:none;"><label id="lbl-email">Votre courriel</label><input type="email" id="userEmail"></div>
+        <div class="form-group">
+            <label id="lbl-boxid">BoxID</label>
+            <input type="text" id="boxId" placeholder="Ex: 123456" maxlength="6" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+        </div>
+        <div class="form-group"><label id="lbl-loc">Emplacement</label><input type="text" id="location" placeholder="Ex: PD, locker..."></div>
+        <div class="form-group"><label id="lbl-tel">Téléphone</label><input type="tel" id="phone" placeholder="418-xxx-xxxx"></div>
+        <div class="form-group">
+            <label id="lbl-empid"># Employé</label>
+            <input type="text" id="empId" placeholder="Ex: 012345" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+        </div>
+        <div class="form-group" style="border:none;"><label id="lbl-email">Votre courriel</label><input type="email" id="userEmail" placeholder="prénom.nom@xerox.com"></div>
         <button class="btn-main" id="btn-next" onclick="saveAndGoToStep2()">Suivant</button>
     </div>
 
     <div id="step2" class="section">
         <input type="file" accept="image/*" capture="environment" id="fileInput" style="display:none;" onchange="scanFile(this)">
-        <button class="btn-scan" id="btn-take-photo" onclick="document.getElementById('fileInput').click()"><i class="fas fa-camera"></i> Prendre Photo</button>
+        <button class="btn-scan" id="btn-take-photo" onclick="document.getElementById('fileInput').click()">
+            <i class="fas fa-camera"></i> Prendre Photo du codebar
+        </button>
+        <p class="scan-tip" id="txt-scan-tip"><i class="fas fa-search-plus"></i> Zoomez sur le code pour qu'il soit seul à l'écran</p>
+        
         <div id="reader" style="display:none;"></div>
         <div id="scanStatus" class="status" style="display:none;"></div>
         <button class="btn-manual" id="btn-manual" onclick="manualEntry()">Saisie Manuelle</button>
+        
         <div class="item-list" id="itemList">
-            <h3 id="txt-scanned-items" style="font-size: 1em; color: #666;">Pièces scannées (0)</h3>
+            <h3 style="font-size: 1em; color: #666;"><span id="txt-scanned-items">Pièces scannées</span> (<span id="totalItems">0</span>)</h3>
         </div>
-        <button id="sendBtn" class="btn-main" onclick="finalSubmit()">Terminer et Envoyer</button>
+        
+        <button class="btn-main" id="btn-send" onclick="finalSubmit()">Terminer et Envoyer</button>
         <button class="btn-secondary" id="btn-back" onclick="goToStep(1)">← Retour</button>
     </div>
 
     <div id="step3" class="section">
-        <div style="text-align:center; padding: 40px 20px;">
-            <div style="font-size:50px; color:var(--success-green);">✔️</div>
-            <p id="txt-success-msg">Données envoyées avec succès !<br><br>ID de transaction généré.<br>Vous recevrez un courriel de confirmation sous peu.</p>
+        <div class="success-box">
+            <div class="success-icon" style="font-size:50px; color:var(--success-green);">✔️</div>
+            <p id="txt-success-msg">Données prêtes.
+                <br><br>
+                Le destinataire est :
+                <br>
+                <b>NewPartReturns@xerox.com</b>
+                <br>
+                Vous recevrez un courriel de confirmation d'ici 5 min.
+                <br><br></p>
             <button class="btn-main" id="btn-new-form" onclick="resetForm()">Nouveau formulaire</button>
         </div>
     </div>
@@ -82,63 +110,65 @@
 <script>
     let inventory = [];
     let currentLang = localStorage.getItem("appLang") || "fr";
-    const html5QrCode = new Html5Qrcode("reader");
-    const pieceRegex = /^\d{3}[a-zA-Z]\d{5}$/;
 
     const translations = {
         fr: {
             mainTitle: 'Formulaire <br>"Retour de pièces neuves"',
-            header1: "1. Informations Expédition",
-            header2: "2. Scan des pièces",
-            header3: "Envoi réussi",
+            headerTitle: ["", "1. Expédition", "2. Scan", "Envoi"],
             lblBoxId: "BoxID",
             lblLoc: "Emplacement",
             lblTel: "Téléphone",
             lblEmpId: "# Employé",
             lblEmail: "Votre courriel",
             btnNext: "Suivant",
-            btnTakePhoto: "Prendre Photo",
+            btnTakePhoto: " Prendre Photo du codebar",
+            scanTip: " Zoomez sur le code pour qu'il soit seul à l'écran",
             btnManual: "Saisie Manuelle",
+            scannedItems: "Pièces scannées",
             btnSend: "Terminer et Envoyer",
             btnBack: "← Retour",
-            btnNew: "Nouveau formulaire",
-            itemsTitle: "Pièces scannées",
+            btnNewForm: "Nouveau formulaire",
+            successMsg: `Données prêtes.<br><br>Le destinataire est :<br><b>NewPartReturns@xerox.com</b><br>Vous recevrez un courriel de confirmation d'ici 5 min.<br><br>`,
             statusAnalyzing: "Analyse...",
-            statusError: "❌ Code illisible",
+            statusError: "❌ Code illisible. Zoomez plus.",
             statusAdded: " ajouté",
-            alertXerox: "Format Xerox non reconnu",
-            alertFields: "BoxID requis (6 chiffres)",
+            statusFormatError: "❌ Format Xerox non détecté",
+            alertMissing: "Champs manquants",
+            alertBoxId: "BoxID: 6 chiffres requis",
+            alertEmail: "Courriel invalide",
+            promptQty: "Modifier la quantité pour ",
+            alertQtyError: "⚠️ Erreur : Veuillez entrer un nombre entier valide (ex: 1, 2, 5).",
             confirmDel: "Supprimer ?",
-            promptQty: "Quantité pour ",
-            promptCode: "Code pièce :",
-            successMsg: "Données envoyées avec succès !<br><br>ID de transaction généré.<br>Vous recevrez un courriel de confirmation sous peu."
+            promptCode: "Code pièce :"
         },
         en: {
             mainTitle: 'Form <br>"New Parts Return"',
-            header1: "1. Shipping Info",
-            header2: "2. Parts Scanning",
-            header3: "Sent Successfully",
+            headerTitle: ["", "1. Shipping", "2. Scan", "Sending"],
             lblBoxId: "BoxID",
             lblLoc: "Location",
             lblTel: "Phone",
             lblEmpId: "Employee #",
             lblEmail: "Your Email",
             btnNext: "Next",
-            btnTakePhoto: "Take Photo",
+            btnTakePhoto: " Take Barcode Photo",
+            scanTip: " Zoom in so the code fills the screen",
             btnManual: "Manual Entry",
+            scannedItems: "Scanned Parts",
             btnSend: "Finish and Send",
             btnBack: "← Back",
-            btnNew: "New Form",
-            itemsTitle: "Scanned Parts",
+            btnNewForm: "New Form",
+            successMsg: `Data ready.<br><br>Recipient is:<br><b>NewPartReturns@xerox.com</b><br>You will receive a confirmation email within 5 min.<br><br>`,
             statusAnalyzing: "Analyzing...",
-            statusError: "❌ Unreadable code",
+            statusError: "❌ Unreadable code. Zoom more.",
             statusAdded: " added",
-            alertXerox: "Xerox format not recognized",
-            alertFields: "BoxID required (6 digits)",
+            statusFormatError: "❌ Xerox format not detected",
+            alertMissing: "Missing fields",
+            alertBoxId: "BoxID: 6 digits required",
+            alertEmail: "Invalid email",
+            promptQty: "Modify quantity for ",
+            alertQtyError: "⚠️ Error: Please enter a valid whole number (ex: 1, 2, 5).",
             confirmDel: "Delete?",
-            promptQty: "Quantity for ",
-            promptCode: "Part Code:",
-            successMsg: "Data sent successfully!<br><br>Transaction ID generated.<br>You will receive a confirmation email shortly."
+            promptCode: "Part code:"
         }
     };
 
@@ -146,7 +176,7 @@
         currentLang = lang;
         localStorage.setItem("appLang", lang);
         const t = translations[lang];
-        
+
         document.getElementById("txt-main-title").innerHTML = t.mainTitle;
         document.getElementById("lbl-boxid").innerText = t.lblBoxId;
         document.getElementById("lbl-loc").innerText = t.lblLoc;
@@ -154,36 +184,24 @@
         document.getElementById("lbl-empid").innerText = t.lblEmpId;
         document.getElementById("lbl-email").innerText = t.lblEmail;
         document.getElementById("btn-next").innerText = t.btnNext;
-        document.getElementById("btn-take-photo").innerHTML = `<i class="fas fa-camera"></i> ${t.btnTakePhoto}`;
+        document.getElementById("btn-take-photo").innerHTML = `<i class="fas fa-camera"></i>${t.btnTakePhoto}`;
+        document.getElementById("txt-scan-tip").innerHTML = `<i class="fas fa-search-plus"></i>${t.scanTip}`;
         document.getElementById("btn-manual").innerText = t.btnManual;
-        document.getElementById("sendBtn").innerText = t.btnSend;
+        document.getElementById("txt-scanned-items").innerText = t.scannedItems;
+        document.getElementById("btn-send").innerText = t.btnSend;
         document.getElementById("btn-back").innerText = t.btnBack;
         document.getElementById("txt-success-msg").innerHTML = t.successMsg;
-        document.getElementById("btn-new-form").innerText = t.btnNew;
-        
-        // Mettre à jour le header selon l'étape actuelle
+        document.getElementById("btn-new-form").innerText = t.btnNewForm;
+
         updateHeader();
         updateList();
     }
 
     function updateHeader() {
-        const step = document.querySelector('.section.active').id;
-        const t = translations[currentLang];
-        if(step === "step1") document.getElementById("headerTitle").innerText = t.header1;
-        if(step === "step2") document.getElementById("headerTitle").innerText = t.header2;
-        if(step === "step3") document.getElementById("headerTitle").innerText = t.header3;
+        const activeSection = document.querySelector('.section.active').id;
+        const step = parseInt(activeSection.replace('step', ''));
+        document.getElementById('headerTitle').innerText = translations[currentLang].headerTitle[step];
     }
-
-    window.onload = function() {
-        document.getElementById("langSelect").value = currentLang;
-        changeLanguage(currentLang);
-        ["phone", "empId", "userEmail"].forEach(id => {
-            const val = localStorage.getItem("saved"+id);
-            if(val) document.getElementById(id).value = val;
-        });
-    };
-
-    // --- LOGIQUE EXISTANTE MISE À JOUR ---
 
     function playSuccessSound() {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -196,12 +214,41 @@
         osc.start(); osc.stop(ctx.currentTime + 0.5);
     }
 
+    function playErrorSound() {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(150, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(); osc.stop(ctx.currentTime + 0.3);
+    }
+    
+    const html5QrCode = new Html5Qrcode("reader");
+    const pieceRegex = /^\d{3}[a-zA-Z]\d{5}$/;
+
+    window.onload = function() {
+        document.getElementById("langSelect").value = currentLang;
+        changeLanguage(currentLang);
+        ["phone", "empId", "userEmail"].forEach(id => {
+            if(localStorage.getItem("saved"+id)) document.getElementById(id).value = localStorage.getItem("saved"+id);
+        });
+    };
+
     function saveAndGoToStep2() {
         const boxId = document.getElementById("boxId").value.trim();
-        if (!boxId || !/^\d{6}$/.test(boxId)) { alert(translations[currentLang].alertFields); return; }
+        const empId = document.getElementById("empId").value.trim();
+        const email = document.getElementById("userEmail").value.trim();
+        const t = translations[currentLang];
+        
+        if (!boxId || !empId || !email) { alert(t.alertMissing); return; }
+        if (!/^\d{6}$/.test(boxId)) { alert(t.alertBoxId); return; }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert(t.alertEmail); return; }
+
         localStorage.setItem("savedphone", document.getElementById("phone").value);
-        localStorage.setItem("savedempId", document.getElementById("empId").value);
-        localStorage.setItem("saveduserEmail", document.getElementById("userEmail").value);
+        localStorage.setItem("savedempId", empId);
+        localStorage.setItem("saveduserEmail", email);
         goToStep(2);
     }
 
@@ -213,40 +260,46 @@
 
     function scanFile(input) {
         if (!input.files?.length) return;
-        const status = document.getElementById("scanStatus");
-        status.style.display = "block";
-        status.innerText = translations[currentLang].statusAnalyzing;
+        const statusDiv = document.getElementById("scanStatus");
+        statusDiv.style.display = "block"; statusDiv.style.background = "#fff3cd"; 
+        statusDiv.innerText = translations[currentLang].statusAnalyzing;
+        
         html5QrCode.scanFile(input.files[0], true)
-            .then(text => { addOrUpdatePiece(text); input.value = ""; })
-            .catch(err => { 
-                status.innerText = translations[currentLang].statusError;
-                input.value = ""; 
+            .then(decodedText => { addOrUpdatePiece(decodedText); input.value = ""; })
+            .catch(err => {
+                statusDiv.style.background = "#f8d7da"; 
+                statusDiv.innerText = translations[currentLang].statusError;
+                input.value = "";
             });
     }
 
     function addOrUpdatePiece(code) {
         const cleanCode = code.trim().replace(/\*/g, "").toUpperCase();
+        const statusDiv = document.getElementById("scanStatus");
+        const t = translations[currentLang];
         if (pieceRegex.test(cleanCode)) {
             const item = inventory.find(i => i.code === cleanCode);
             if (item) item.qty += 1; else inventory.push({ code: cleanCode, qty: 1 });
             playSuccessSound();
-            document.getElementById("scanStatus").innerText = "✅ " + cleanCode + translations[currentLang].statusAdded;
+            statusDiv.style.background = "#d4edda"; statusDiv.innerText = "✅ " + cleanCode + t.statusAdded;
             updateList();
+            if (navigator.vibrate) navigator.vibrate(100); 
         } else {
-            alert(translations[currentLang].alertXerox);
+            playErrorSound();
+            statusDiv.style.background = "#f8d7da"; statusDiv.innerText = t.statusFormatError;
         }
     }
 
     function updateList() {
         const listDiv = document.getElementById("itemList");
         const t = translations[currentLang];
-        listDiv.innerHTML = `<h3 style="font-size: 1em; color: #666;">${t.itemsTitle} (${inventory.length})</h3>`;
+        listDiv.innerHTML = `<h3 style="font-size: 1em; color: #666;">${t.scannedItems} (<span id="totalItems">${inventory.length}</span>)</h3>`;
         inventory.forEach((item, index) => {
             const row = document.createElement("div"); row.className = "item";
-            row.innerHTML = `<div><span class="item-code">${item.code}</span><br><small>QTY: ${item.qty}</small></div>
+            row.innerHTML = `<div class="item-info"><span class="item-code">${item.code}</span><span class="item-qty">QTY ${item.qty}</span></div>
                 <div class="item-actions">
-                    <button class="btn-icon" onclick="editQuantity(${index})" style="color:#007bff"><i class="fas fa-pencil-alt"></i></button>
-                    <button class="btn-icon" onclick="removePiece(${index})" style="color:red"><i class="fas fa-trash"></i></button>
+                    <button class="btn-icon btn-edit" onclick="editQuantity(${index})"><i class="fas fa-pencil-alt"></i></button>
+                    <button class="btn-icon btn-del" onclick="removePiece(${index})"><i class="fas fa-trash-alt"></i></button>
                 </div>`;
             listDiv.appendChild(row);
         });
@@ -254,42 +307,52 @@
 
     function editQuantity(i) {
         let valid = false;
+        const currentCode = inventory[i].code;
         const t = translations[currentLang];
+        
         while (!valid) {
-            const n = prompt(t.promptQty + inventory[i].code + " :", inventory[i].qty);
-            if (n === null) break;
-            const newQty = parseInt(n.trim());
-            if (!isNaN(newQty) && newQty > 0) {
-                inventory[i].qty = newQty; updateList(); valid = true;
-            } else { alert("Error: number required"); }
+            const n = prompt(t.promptQty + currentCode + " :", inventory[i].qty);
+            if (n === null) break; 
+            const cleanN = n.trim();
+            const newQty = parseInt(cleanN);
+
+            if (!isNaN(newQty) && newQty > 0 && /^\d+$/.test(cleanN)) {
+                inventory[i].qty = newQty;
+                updateList();
+                valid = true;
+            } else {
+                alert(t.alertQtyError);
+            }
         }
     }
 
     function removePiece(i) { if(confirm(translations[currentLang].confirmDel)) { inventory.splice(i, 1); updateList(); } }
+
     function manualEntry() { const c = prompt(translations[currentLang].promptCode); if (c) addOrUpdatePiece(c); }
 
     function finalSubmit() {
         if (!inventory.length) return;
-        const transactionID = Date.now();
-        const btn = document.getElementById("sendBtn");
-        btn.disabled = true;
-
-        let body = "ID_TRANSACTION:" + transactionID + "\nDEBUT_DONNEES\n";
-        body += "BOXID:" + document.getElementById("boxId").value + "\nEMPID:" + document.getElementById("empId").value + "\n";
+        const transactionID = Date.now(); 
+        let body = "ID_TRANSACTION:" + transactionID + "\n";
+        body += "DEBUT_DONNEES\nBOXID:" + document.getElementById("boxId").value + "\nLOC:" + document.getElementById("location").value + 
+                "\nTEL:" + document.getElementById("phone").value + "\nEMPID:" + document.getElementById("empId").value + 
+                "\nEMAIL:" + document.getElementById("userEmail").value + "\n---PIECES---\n";
+        
         inventory.forEach(i => body += "ITEM:" + i.code + "|QTY:" + i.qty + "\n");
-        
-        const mailto = "mailto:Power.Automate.Flow.Bot@xerox.com?subject=DATA_SCAN_XEROX_" + transactionID + "&body=" + encodeURIComponent(body + "FIN_DONNEES");
-        
-        inventory = []; updateList();
-        window.location.href = mailto;
-        setTimeout(() => { goToStep(3); btn.disabled = false; }, 1500);
+        const mailtoLink = "mailto:Power.Automate.Flow.Bot@xerox.com?subject=DATA_SCAN_XEROX_" + transactionID + "&body=" + encodeURIComponent(body + "FIN_DONNEES");
+        inventory = []; 
+        updateList();
+        window.location.href = mailtoLink;
+        setTimeout(() => goToStep(3), 1000);
     }
 
-    function resetForm() {
-        inventory = []; updateList();
+    function resetForm() { 
+        inventory = []; 
+        updateList(); 
         document.getElementById("boxId").value = "";
+        document.getElementById("location").value = "";
         document.getElementById("scanStatus").style.display = "none";
-        goToStep(1);
+        goToStep(1); 
     }
 </script>
 </body>
